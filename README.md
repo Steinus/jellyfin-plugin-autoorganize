@@ -2,6 +2,10 @@
 
 Private development project for an Emby Auto Organize-style workflow in Jellyfin.
 
+## Compatibility
+
+Current development target: **Jellyfin 12.2 / .NET 10**.
+
 ## Current milestone (0.1.0)
 
 - Separate watch/source and destination folders for movies and TV shows.
