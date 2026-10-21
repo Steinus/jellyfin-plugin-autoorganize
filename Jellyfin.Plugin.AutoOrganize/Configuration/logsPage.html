@@ -10,19 +10,47 @@
         <div class="content-primary">
             <h2>Auto Organize — Логи</h2>
             <p class="fieldDescription">Здесь отображаются действия организатора: найдено, пропущено, перенесено, скопировано, создан hardlink или произошла ошибка.</p>
-            <div style="margin:1em 0">
+
+            <div style="margin:1em 0;display:flex;gap:.7em;flex-wrap:wrap">
+                <button id="RunAutoOrganize" is="emby-button" type="button" class="raised button-submit emby-button"><span>Auto Organize</span></button>
                 <button id="RefreshLog" is="emby-button" type="button" class="raised emby-button"><span>Обновить</span></button>
                 <button id="ClearLog" is="emby-button" type="button" class="raised emby-button"><span>Очистить</span></button>
             </div>
+
+            <div id="RunStatus" class="fieldDescription" style="margin-bottom:1em"></div>
             <div id="LogList"></div>
         </div>
     </div>
 <script type="text/javascript">
 (function () {
     const pluginId = 'b0515a71-eba2-4cca-9670-6aedba961caa';
+    const taskKey = 'AutoOrganizeMedia';
+    let pollTimer = null;
 
     function escapeHtml(value) {
         return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    }
+
+    function isRunning(task) {
+        return task && String(task.State ?? '').toLowerCase() === 'running';
+    }
+
+    function setRunState(running, text) {
+        const button = document.querySelector('#RunAutoOrganize');
+        const status = document.querySelector('#RunStatus');
+        if (!button) {
+            return;
+        }
+
+        button.disabled = running;
+        const span = button.querySelector('span');
+        if (span) {
+            span.textContent = running ? 'Выполняется...' : 'Auto Organize';
+        }
+
+        if (status) {
+            status.textContent = text || (running ? 'Auto Organize выполняется…' : '');
+        }
     }
 
     function render(config) {
@@ -36,28 +64,93 @@
         list.innerHTML = items.map(item => {
             const color = item.Status === 'Error' ? '#e57373' :
                           item.Status === 'Success' ? '#66bb6a' :
-                          item.Status === 'Skipped' ? '#ffb74d' : '#90caf9';
+                          item.Status === 'Skipped' ? '#ffb74d' :
+                          item.Status === 'Preview' ? '#90caf9' : '#bdbdbd';
+            const source = item.Source ? '<div><b>Источник:</b> ' + escapeHtml(item.Source) + '</div>' : '';
             const target = item.Destination ? '<div><b>Куда:</b> ' + escapeHtml(item.Destination) + '</div>' : '';
             return '<div style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.12)">' +
                 '<div><b>' + escapeHtml(item.MediaType) + '</b> · <span style="color:' + color + '">' + escapeHtml(item.Status) + '</span> · ' +
                 escapeHtml(new Date(item.TimestampUtc).toLocaleString()) + '</div>' +
-                '<div><b>Источник:</b> ' + escapeHtml(item.Source) + '</div>' +
+                source +
                 target +
                 '<div>' + escapeHtml(item.Message) + '</div>' +
                 '</div>';
         }).join('');
     }
 
+    function findTask() {
+        return ApiClient.getScheduledTasks().then(tasks => {
+            const task = (tasks || []).find(item => item.Key === taskKey);
+            if (!task) {
+                throw new Error('Задача Auto Organize не найдена в планировщике Jellyfin.');
+            }
+
+            return task;
+        });
+    }
+
+    function refreshTaskState() {
+        return findTask().then(task => {
+            setRunState(isRunning(task), isRunning(task) ? 'Auto Organize выполняется…' : '');
+            return task;
+        });
+    }
+
     function load() {
         Dashboard.showLoadingMsg();
-        ApiClient.getPluginConfiguration(pluginId).then(config => {
-            render(config);
+        return Promise.all([
+            ApiClient.getPluginConfiguration(pluginId),
+            refreshTaskState()
+        ]).then(results => {
+            render(results[0]);
+        }).finally(() => {
             Dashboard.hideLoadingMsg();
         });
     }
 
+    function pollUntilFinished(taskId) {
+        if (pollTimer) {
+            clearTimeout(pollTimer);
+        }
+
+        ApiClient.getScheduledTask(taskId).then(task => {
+            if (isRunning(task)) {
+                setRunState(true, 'Auto Organize выполняется… ' +
+                    (task.CurrentProgressPercentage == null ? '' : Math.round(task.CurrentProgressPercentage) + '%'));
+                pollTimer = setTimeout(() => pollUntilFinished(taskId), 1500);
+                return;
+            }
+
+            setRunState(false, 'Auto Organize завершён.');
+            pollTimer = null;
+            ApiClient.getPluginConfiguration(pluginId).then(render);
+        }).catch(err => {
+            setRunState(false, 'Не удалось проверить состояние задачи: ' + (err.message || err));
+            pollTimer = null;
+        });
+    }
+
     document.querySelector('#AutoOrganizeLogsPage').addEventListener('pageshow', load);
+
+    document.querySelector('#RunAutoOrganize').addEventListener('click', function () {
+        setRunState(true, 'Запуск Auto Organize…');
+
+        findTask().then(task => {
+            if (isRunning(task)) {
+                return task;
+            }
+
+            return ApiClient.startScheduledTask(task.Id).then(() => task);
+        }).then(task => {
+            setRunState(true, 'Auto Organize запущен.');
+            pollUntilFinished(task.Id);
+        }).catch(err => {
+            setRunState(false, 'Ошибка запуска: ' + (err.message || err));
+        });
+    });
+
     document.querySelector('#RefreshLog').addEventListener('click', load);
+
     document.querySelector('#ClearLog').addEventListener('click', function () {
         Dashboard.showLoadingMsg();
         ApiClient.getPluginConfiguration(pluginId).then(config => {
@@ -65,7 +158,9 @@
             return ApiClient.updatePluginConfiguration(pluginId, config);
         }).then(result => {
             Dashboard.processPluginConfigurationUpdateResult(result);
-            load();
+            return ApiClient.getPluginConfiguration(pluginId);
+        }).then(render).finally(() => {
+            Dashboard.hideLoadingMsg();
         });
     });
 }());

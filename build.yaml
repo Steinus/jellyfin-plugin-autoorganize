@@ -1,7 +1,7 @@
 ---
 name: "Auto Organize"
 guid: "b0515a71-eba2-4cca-9670-6aedba961caa"
-version: "0.2.0.0"
+version: "0.2.1.0"
 targetAbi: "12.2.0.0"
 framework: "net10.0"
 overview: "Import, rename and organize movies and TV episodes from watch folders."
@@ -16,5 +16,6 @@ owner: "Steinus"
 artifacts:
 - "Jellyfin.Plugin.AutoOrganize.dll"
 changelog: >
-  Added separate Movies, Series and Logs pages, per-media processing settings,
-  and persistent organizer activity logging.
+  Added a manual Auto Organize button on the Logs page. The button starts the
+  Jellyfin scheduled task, shows running progress, disables itself while the
+  task is active, and refreshes the activity log when processing completes.
