@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Jellyfin.Plugin.AutoOrganize.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
@@ -14,6 +15,8 @@ namespace Jellyfin.Plugin.AutoOrganize;
 /// </summary>
 public sealed class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 {
+    private readonly object _activitySync = new();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Plugin"/> class.
     /// </summary>
@@ -34,18 +37,71 @@ public sealed class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     /// </summary>
     public static Plugin? Instance { get; private set; }
 
+    /// <summary>
+    /// Appends a persistent organizer activity entry.
+    /// </summary>
+    public void AddActivity(
+        string mediaType,
+        string status,
+        string source,
+        string? destination,
+        string message)
+    {
+        lock (_activitySync)
+        {
+            Configuration.ActivityLog ??= [];
+            Configuration.ActivityLog.Insert(0, new ActivityLogEntry
+            {
+                TimestampUtc = DateTime.UtcNow,
+                MediaType = mediaType,
+                Status = status,
+                Source = source,
+                Destination = destination ?? string.Empty,
+                Message = message
+            });
+
+            const int maxEntries = 500;
+            if (Configuration.ActivityLog.Count > maxEntries)
+            {
+                Configuration.ActivityLog = Configuration.ActivityLog.Take(maxEntries).ToList();
+            }
+
+            SaveConfiguration();
+        }
+    }
+
     /// <inheritdoc />
     public IEnumerable<PluginPageInfo> GetPages()
     {
+        var ns = GetType().Namespace;
         return
         [
             new PluginPageInfo
             {
-                Name = Name,
+                Name = "AutoOrganizeLogs",
+                DisplayName = "Auto Organize - Логи",
                 EmbeddedResourcePath = string.Format(
                     CultureInfo.InvariantCulture,
-                    "{0}.Configuration.configPage.html",
-                    GetType().Namespace)
+                    "{0}.Configuration.logsPage.html",
+                    ns)
+            },
+            new PluginPageInfo
+            {
+                Name = "AutoOrganizeMovies",
+                DisplayName = "Auto Organize - Фильмы",
+                EmbeddedResourcePath = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0}.Configuration.moviesPage.html",
+                    ns)
+            },
+            new PluginPageInfo
+            {
+                Name = "AutoOrganizeSeries",
+                DisplayName = "Auto Organize - Сериалы",
+                EmbeddedResourcePath = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0}.Configuration.seriesPage.html",
+                    ns)
             }
         ];
     }

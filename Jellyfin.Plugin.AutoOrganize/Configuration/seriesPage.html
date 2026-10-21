@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Auto Organize - Сериалы</title>
+</head>
+<body>
+<div id="AutoOrganizeSeriesPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+    <div data-role="content">
+        <div class="content-primary">
+            <form id="SeriesForm">
+                <h2>Auto Organize — Сериалы</h2>
+
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label"><input id="SeriesEnabled" type="checkbox" is="emby-checkbox" /><span>Включить автоорганизацию сериалов</span></label>
+                </div>
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label"><input id="SeriesDryRun" type="checkbox" is="emby-checkbox" /><span>Тестовый режим — не изменять файлы</span></label>
+                </div>
+
+                <div class="inputContainer"><label class="inputLabel" for="SeriesSource">Папка наблюдения</label><input id="SeriesSource" type="text" is="emby-input" /><div class="fieldDescription">Например: /volume25/Video2/Torrents/TV</div></div>
+                <div class="inputContainer"><label class="inputLabel" for="SeriesDestination">Каталог сериалов</label><input id="SeriesDestination" type="text" is="emby-input" /><div class="fieldDescription">Например: /volume25/Video2/TV</div></div>
+                <div class="inputContainer"><label class="inputLabel" for="SeriesMinimumFileAgeMinutes">Минимальный возраст файла, минут</label><input id="SeriesMinimumFileAgeMinutes" type="number" min="0" is="emby-input" /></div>
+                <div class="inputContainer"><label class="inputLabel" for="SeriesFolderTemplate">Шаблон папки сериала</label><input id="SeriesFolderTemplate" type="text" is="emby-input" /></div>
+                <div class="inputContainer"><label class="inputLabel" for="SeasonFolderTemplate">Шаблон папки сезона</label><input id="SeasonFolderTemplate" type="text" is="emby-input" /></div>
+                <div class="inputContainer"><label class="inputLabel" for="EpisodeFileTemplate">Шаблон имени серии</label><input id="EpisodeFileTemplate" type="text" is="emby-input" /></div>
+
+                <div class="selectContainer"><label class="selectLabel" for="SeriesOperation">Метод переноса</label><select id="SeriesOperation" is="emby-select"><option value="Move">Переместить</option><option value="Copy">Копировать</option><option value="Hardlink">Hardlink</option></select></div>
+
+                <div class="inputContainer"><label class="inputLabel" for="Language">Язык метаданных</label><input id="Language" type="text" is="emby-input" /></div>
+                <div class="inputContainer"><label class="inputLabel" for="ReplaceColonWith">Заменять двоеточие на</label><input id="ReplaceColonWith" type="text" is="emby-input" /></div>
+
+                <div class="checkboxContainer checkboxContainer-withDescription"><label class="emby-checkbox-label"><input id="UseJellyfinMetadataProviders" type="checkbox" is="emby-checkbox" /><span>Использовать провайдеры Jellyfin для названий</span></label></div>
+                <div class="checkboxContainer checkboxContainer-withDescription"><label class="emby-checkbox-label"><input id="SeriesMoveAssociatedFiles" type="checkbox" is="emby-checkbox" /><span>Переносить субтитры, NFO и изображения</span></label></div>
+                <div class="checkboxContainer checkboxContainer-withDescription"><label class="emby-checkbox-label"><input id="SeriesDeleteEmptyFolders" type="checkbox" is="emby-checkbox" /><span>Удалять пустые исходные папки</span></label></div>
+
+                <button is="emby-button" type="submit" class="raised button-submit block emby-button"><span>Сохранить</span></button>
+            </form>
+        </div>
+    </div>
+<script type="text/javascript">
+(function () {
+    const pluginId = 'b0515a71-eba2-4cca-9670-6aedba961caa';
+    const ids = ['SeriesSource','SeriesDestination','SeriesMinimumFileAgeMinutes','SeriesFolderTemplate','SeasonFolderTemplate','EpisodeFileTemplate','SeriesOperation','Language','ReplaceColonWith'];
+    const checks = ['SeriesEnabled','SeriesDryRun','UseJellyfinMetadataProviders','SeriesMoveAssociatedFiles','SeriesDeleteEmptyFolders'];
+
+    document.querySelector('#AutoOrganizeSeriesPage').addEventListener('pageshow', function () {
+        Dashboard.showLoadingMsg();
+        ApiClient.getPluginConfiguration(pluginId).then(config => {
+            ids.forEach(id => { document.querySelector('#' + id).value = config[id] ?? ''; });
+            checks.forEach(id => { document.querySelector('#' + id).checked = !!config[id]; });
+            Dashboard.hideLoadingMsg();
+        });
+    });
+
+    document.querySelector('#SeriesForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        Dashboard.showLoadingMsg();
+        ApiClient.getPluginConfiguration(pluginId).then(config => {
+            ids.forEach(id => { config[id] = document.querySelector('#' + id).value; });
+            config.SeriesMinimumFileAgeMinutes = parseInt(document.querySelector('#SeriesMinimumFileAgeMinutes').value || '0', 10);
+            checks.forEach(id => { config[id] = document.querySelector('#' + id).checked; });
+            return ApiClient.updatePluginConfiguration(pluginId, config);
+        }).then(result => Dashboard.processPluginConfigurationUpdateResult(result));
+        return false;
+    });
+}());
+</script>
+</div>
+</body>
+</html>

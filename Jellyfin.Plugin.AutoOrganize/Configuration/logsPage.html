@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>Auto Organize - Логи</title>
+</head>
+<body>
+<div id="AutoOrganizeLogsPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-button">
+    <div data-role="content">
+        <div class="content-primary">
+            <h2>Auto Organize — Логи</h2>
+            <p class="fieldDescription">Здесь отображаются действия организатора: найдено, пропущено, перенесено, скопировано, создан hardlink или произошла ошибка.</p>
+            <div style="margin:1em 0">
+                <button id="RefreshLog" is="emby-button" type="button" class="raised emby-button"><span>Обновить</span></button>
+                <button id="ClearLog" is="emby-button" type="button" class="raised emby-button"><span>Очистить</span></button>
+            </div>
+            <div id="LogList"></div>
+        </div>
+    </div>
+<script type="text/javascript">
+(function () {
+    const pluginId = 'b0515a71-eba2-4cca-9670-6aedba961caa';
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    }
+
+    function render(config) {
+        const list = document.querySelector('#LogList');
+        const items = config.ActivityLog || [];
+        if (!items.length) {
+            list.innerHTML = '<p class="fieldDescription">Журнал пока пуст.</p>';
+            return;
+        }
+
+        list.innerHTML = items.map(item => {
+            const color = item.Status === 'Error' ? '#e57373' :
+                          item.Status === 'Success' ? '#66bb6a' :
+                          item.Status === 'Skipped' ? '#ffb74d' : '#90caf9';
+            const target = item.Destination ? '<div><b>Куда:</b> ' + escapeHtml(item.Destination) + '</div>' : '';
+            return '<div style="padding:12px 0;border-bottom:1px solid rgba(255,255,255,.12)">' +
+                '<div><b>' + escapeHtml(item.MediaType) + '</b> · <span style="color:' + color + '">' + escapeHtml(item.Status) + '</span> · ' +
+                escapeHtml(new Date(item.TimestampUtc).toLocaleString()) + '</div>' +
+                '<div><b>Источник:</b> ' + escapeHtml(item.Source) + '</div>' +
+                target +
+                '<div>' + escapeHtml(item.Message) + '</div>' +
+                '</div>';
+        }).join('');
+    }
+
+    function load() {
+        Dashboard.showLoadingMsg();
+        ApiClient.getPluginConfiguration(pluginId).then(config => {
+            render(config);
+            Dashboard.hideLoadingMsg();
+        });
+    }
+
+    document.querySelector('#AutoOrganizeLogsPage').addEventListener('pageshow', load);
+    document.querySelector('#RefreshLog').addEventListener('click', load);
+    document.querySelector('#ClearLog').addEventListener('click', function () {
+        Dashboard.showLoadingMsg();
+        ApiClient.getPluginConfiguration(pluginId).then(config => {
+            config.ActivityLog = [];
+            return ApiClient.updatePluginConfiguration(pluginId, config);
+        }).then(result => {
+            Dashboard.processPluginConfigurationUpdateResult(result);
+            load();
+        });
+    });
+}());
+</script>
+</div>
+</body>
+</html>

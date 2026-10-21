@@ -20,6 +20,12 @@
 
   <ItemGroup>
     <None Remove="Configuration\configPage.html" />
+    <None Remove="Configuration\logsPage.html" />
+    <None Remove="Configuration\moviesPage.html" />
+    <None Remove="Configuration\seriesPage.html" />
     <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="Configuration\logsPage.html" />
+    <EmbeddedResource Include="Configuration\moviesPage.html" />
+    <EmbeddedResource Include="Configuration\seriesPage.html" />
   </ItemGroup>
 </Project>

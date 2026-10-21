@@ -27,21 +27,25 @@ public sealed class OrganizeService
 
     private readonly ILogger _logger;
     private readonly MetadataResolver _metadataResolver;
+    private readonly Plugin _plugin;
 
-    public OrganizeService(ILogger logger, IProviderManager providerManager)
+    public OrganizeService(ILogger logger, IProviderManager providerManager, Plugin plugin)
     {
         _logger = logger;
         _metadataResolver = new MetadataResolver(providerManager, logger);
+        _plugin = plugin;
     }
 
     public int CountCandidates(PluginConfiguration config)
     {
-        return EnumerateVideoFiles(config.MoviesSource).Count() + EnumerateVideoFiles(config.SeriesSource).Count();
+        var movies = config.MoviesEnabled ? EnumerateVideoFiles(config.MoviesSource).Count() : 0;
+        var series = config.SeriesEnabled ? EnumerateVideoFiles(config.SeriesSource).Count() : 0;
+        return movies + series;
     }
 
     public async Task ProcessMoviesAsync(PluginConfiguration config, Action itemCompleted, CancellationToken cancellationToken)
     {
-        if (!IsPairConfigured(config.MoviesSource, config.MoviesDestination))
+        if (!config.MoviesEnabled || !IsPairConfigured(config.MoviesSource, config.MoviesDestination))
         {
             return;
         }
@@ -52,8 +56,9 @@ public sealed class OrganizeService
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                if (!IsStable(source, config.MinimumFileAgeMinutes))
+                if (!IsStable(source, config.MoviesMinimumFileAgeMinutes))
                 {
+                    _plugin.AddActivity("Movie", "Skipped", source, null, "Файл ещё слишком новый и может продолжать записываться.");
                     continue;
                 }
 
@@ -71,11 +76,22 @@ public sealed class OrganizeService
                     TemplateRenderer.Movie(config.MovieFileTemplate, info, ext, config.ReplaceColonWith),
                     config.ReplaceColonWith);
                 var destination = Path.Combine(config.MoviesDestination, folder, fileName);
-                Execute(source, destination, config);
+
+                Execute(
+                    "Movie",
+                    source,
+                    destination,
+                    config.MoviesOperation,
+                    config.MoviesDryRun,
+                    config.MoviesMoveAssociatedFiles,
+                    config.MoviesDeleteEmptyFolders,
+                    config.MoviesSource,
+                    config.SeriesSource);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Auto Organize failed for movie {Source}", source);
+                _plugin.AddActivity("Movie", "Error", source, null, ex.Message);
             }
             finally
             {
@@ -86,7 +102,7 @@ public sealed class OrganizeService
 
     public async Task ProcessSeriesAsync(PluginConfiguration config, Action itemCompleted, CancellationToken cancellationToken)
     {
-        if (!IsPairConfigured(config.SeriesSource, config.SeriesDestination))
+        if (!config.SeriesEnabled || !IsPairConfigured(config.SeriesSource, config.SeriesDestination))
         {
             return;
         }
@@ -97,8 +113,9 @@ public sealed class OrganizeService
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                if (!IsStable(source, config.MinimumFileAgeMinutes))
+                if (!IsStable(source, config.SeriesMinimumFileAgeMinutes))
                 {
+                    _plugin.AddActivity("TV", "Skipped", source, null, "Файл ещё слишком новый и может продолжать записываться.");
                     continue;
                 }
 
@@ -106,6 +123,7 @@ public sealed class OrganizeService
                 if (info is null)
                 {
                     _logger.LogWarning("Auto Organize could not parse an episode number from {Source}; skipping", source);
+                    _plugin.AddActivity("TV", "Skipped", source, null, "Не удалось определить номер сезона/серии из имени файла.");
                     continue;
                 }
 
@@ -125,11 +143,22 @@ public sealed class OrganizeService
                     TemplateRenderer.Episode(config.EpisodeFileTemplate, info, ext, config.ReplaceColonWith),
                     config.ReplaceColonWith);
                 var destination = Path.Combine(config.SeriesDestination, seriesFolder, seasonFolder, fileName);
-                Execute(source, destination, config);
+
+                Execute(
+                    "TV",
+                    source,
+                    destination,
+                    config.SeriesOperation,
+                    config.SeriesDryRun,
+                    config.SeriesMoveAssociatedFiles,
+                    config.SeriesDeleteEmptyFolders,
+                    config.MoviesSource,
+                    config.SeriesSource);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Auto Organize failed for episode {Source}", source);
+                _plugin.AddActivity("TV", "Error", source, null, ex.Message);
             }
             finally
             {
@@ -138,22 +167,34 @@ public sealed class OrganizeService
         }
     }
 
-    private void Execute(string source, string destination, PluginConfiguration config)
+    private void Execute(
+        string mediaType,
+        string source,
+        string destination,
+        FileOperation operation,
+        bool dryRun,
+        bool processAssociatedFiles,
+        bool deleteEmptyFolders,
+        string moviesRoot,
+        string seriesRoot)
     {
         if (File.Exists(destination))
         {
             _logger.LogWarning("Auto Organize destination already exists; skipping: {Destination}", destination);
+            _plugin.AddActivity(mediaType, "Skipped", source, destination, "Файл назначения уже существует.");
             return;
         }
 
-        _logger.LogInformation("Auto Organize: {Operation} {Source} -> {Destination}{DryRun}",
-            config.Operation,
+        _logger.LogInformation(
+            "Auto Organize: {Operation} {Source} -> {Destination}{DryRun}",
+            operation,
             source,
             destination,
-            config.DryRun ? " [DRY RUN]" : string.Empty);
+            dryRun ? " [DRY RUN]" : string.Empty);
 
-        if (config.DryRun)
+        if (dryRun)
         {
+            _plugin.AddActivity(mediaType, "Preview", source, destination, $"Тестовый режим: {operation}, файлы не изменены.");
             return;
         }
 
@@ -161,7 +202,7 @@ public sealed class OrganizeService
             ?? throw new InvalidOperationException("Destination directory could not be determined.");
         Directory.CreateDirectory(directory);
 
-        switch (config.Operation)
+        switch (operation)
         {
             case FileOperation.Move:
                 File.Move(source, destination);
@@ -173,21 +214,34 @@ public sealed class OrganizeService
                 HardLinkHelper.Create(source, destination);
                 break;
             default:
-                throw new InvalidOperationException($"Unsupported file operation: {config.Operation}");
+                throw new InvalidOperationException($"Unsupported file operation: {operation}");
         }
 
-        if (config.MoveAssociatedFiles)
+        if (processAssociatedFiles)
         {
-            ProcessAssociatedFiles(source, destination, config);
+            ProcessAssociatedFiles(source, destination, operation);
         }
 
-        if (config.DeleteEmptyFolders && config.Operation == FileOperation.Move)
+        if (deleteEmptyFolders && operation == FileOperation.Move)
         {
-            DeleteEmptyParents(Path.GetDirectoryName(source), config.MoviesSource, config.SeriesSource);
+            DeleteEmptyParents(Path.GetDirectoryName(source), moviesRoot, seriesRoot);
         }
+
+        _plugin.AddActivity(mediaType, "Success", source, destination, OperationMessage(operation));
     }
 
-    private void ProcessAssociatedFiles(string originalSource, string videoDestination, PluginConfiguration config)
+    private static string OperationMessage(FileOperation operation)
+    {
+        return operation switch
+        {
+            FileOperation.Move => "Файл успешно перемещён.",
+            FileOperation.Copy => "Файл успешно скопирован.",
+            FileOperation.Hardlink => "Hardlink успешно создан.",
+            _ => "Операция выполнена."
+        };
+    }
+
+    private void ProcessAssociatedFiles(string originalSource, string videoDestination, FileOperation operation)
     {
         var sourceDirectory = Path.GetDirectoryName(originalSource);
         if (sourceDirectory is null || !Directory.Exists(sourceDirectory))
@@ -220,7 +274,7 @@ public sealed class OrganizeService
                 continue;
             }
 
-            switch (config.Operation)
+            switch (operation)
             {
                 case FileOperation.Move:
                     File.Move(sidecar, sidecarDestination);

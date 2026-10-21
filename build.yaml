@@ -1,18 +1,20 @@
 ---
 name: "Auto Organize"
 guid: "b0515a71-eba2-4cca-9670-6aedba961caa"
-version: "0.1.0.0"
+version: "0.2.0.0"
 targetAbi: "12.2.0.0"
 framework: "net10.0"
 overview: "Import, rename and organize movies and TV episodes from watch folders."
 description: >
   Auto Organize watches configurable source folders and safely imports movies
-  and TV episodes into Jellyfin library folders. It supports move, copy and
-  hardlink operations, Windows/SMB-safe filenames, configurable naming templates,
-  dry-run mode, associated subtitle/NFO files, and scheduled execution.
+  and TV episodes into Jellyfin library folders. Movies, series and the activity
+  log have separate configuration pages. It supports move, copy and hardlink
+  operations, Windows/SMB-safe filenames, naming templates, dry-run mode,
+  sidecar files, Jellyfin metadata providers, and scheduled execution.
 category: "General"
 owner: "Steinus"
 artifacts:
 - "Jellyfin.Plugin.AutoOrganize.dll"
 changelog: >
-  Initial development version.
+  Added separate Movies, Series and Logs pages, per-media processing settings,
+  and persistent organizer activity logging.

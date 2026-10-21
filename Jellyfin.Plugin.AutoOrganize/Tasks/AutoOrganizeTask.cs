@@ -35,16 +35,19 @@ public sealed class AutoOrganizeTask : IScheduledTask
     {
         var plugin = Plugin.Instance ?? throw new InvalidOperationException("Auto Organize plugin is not initialized.");
         var config = plugin.Configuration;
-        if (!config.Enabled)
+        if (!config.MoviesEnabled && !config.SeriesEnabled)
         {
-            _logger.LogInformation("Auto Organize is disabled in plugin settings.");
+            _logger.LogInformation("Auto Organize movie and series processing are both disabled.");
             progress.Report(100);
             return;
         }
 
-        var service = new OrganizeService(_logger, _providerManager);
+        var service = new OrganizeService(_logger, _providerManager, plugin);
         var total = Math.Max(1, service.CountCandidates(config));
         var completed = 0;
+
+        plugin.AddActivity("System", "Info", string.Empty, null, "Запущена задача Auto Organize.");
+
         void Completed()
         {
             completed++;
@@ -53,6 +56,8 @@ public sealed class AutoOrganizeTask : IScheduledTask
 
         await service.ProcessMoviesAsync(config, Completed, cancellationToken).ConfigureAwait(false);
         await service.ProcessSeriesAsync(config, Completed, cancellationToken).ConfigureAwait(false);
+
+        plugin.AddActivity("System", "Info", string.Empty, null, "Задача Auto Organize завершена.");
         progress.Report(100);
     }
 
