@@ -73,35 +73,16 @@ public sealed class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     /// <inheritdoc />
     public IEnumerable<PluginPageInfo> GetPages()
     {
-        var ns = GetType().Namespace;
         return
         [
             new PluginPageInfo
             {
-                Name = "AutoOrganizeLogs",
-                DisplayName = "Auto Organize - Логи",
+                Name = "AutoOrganize",
+                DisplayName = "Auto Organize",
                 EmbeddedResourcePath = string.Format(
                     CultureInfo.InvariantCulture,
                     "{0}.Configuration.logsPage.html",
-                    ns)
-            },
-            new PluginPageInfo
-            {
-                Name = "AutoOrganizeMovies",
-                DisplayName = "Auto Organize - Фильмы",
-                EmbeddedResourcePath = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}.Configuration.moviesPage.html",
-                    ns)
-            },
-            new PluginPageInfo
-            {
-                Name = "AutoOrganizeSeries",
-                DisplayName = "Auto Organize - Сериалы",
-                EmbeddedResourcePath = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}.Configuration.seriesPage.html",
-                    ns)
+                    GetType().Namespace)
             }
         ];
     }
