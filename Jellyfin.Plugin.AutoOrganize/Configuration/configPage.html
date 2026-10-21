@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Auto Organize</title>
+</head>
+<body>
+<div id="AutoOrganizeConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+    <div data-role="content">
+        <div class="content-primary">
+            <form id="AutoOrganizeConfigForm">
+                <h2>Auto Organize</h2>
+                <div class="fieldDescription" style="margin-bottom:1.5em">Development build. Dry run is enabled by default so no files are changed until you explicitly disable it.</div>
+
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label"><input id="Enabled" type="checkbox" is="emby-checkbox" /><span>Enable processing</span></label>
+                    <div class="fieldDescription">When disabled, the scheduled task does nothing.</div>
+                </div>
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label"><input id="DryRun" type="checkbox" is="emby-checkbox" /><span>Dry run (do not modify files)</span></label>
+                    <div class="fieldDescription">Recommended while testing paths and templates.</div>
+                </div>
+
+                <h3>Movies</h3>
+                <div class="inputContainer"><label class="inputLabel" for="MoviesSource">Watch folder</label><input id="MoviesSource" type="text" is="emby-input" /><div class="fieldDescription">Example: /media/Torrents/Movies</div></div>
+                <div class="inputContainer"><label class="inputLabel" for="MoviesDestination">Destination library</label><input id="MoviesDestination" type="text" is="emby-input" /><div class="fieldDescription">Example: /media/Movies</div></div>
+                <div class="inputContainer"><label class="inputLabel" for="MovieFolderTemplate">Movie folder template</label><input id="MovieFolderTemplate" type="text" is="emby-input" /></div>
+                <div class="inputContainer"><label class="inputLabel" for="MovieFileTemplate">Movie file template</label><input id="MovieFileTemplate" type="text" is="emby-input" /></div>
+
+                <h3>TV shows</h3>
+                <div class="inputContainer"><label class="inputLabel" for="SeriesSource">Watch folder</label><input id="SeriesSource" type="text" is="emby-input" /><div class="fieldDescription">Example: /media/Torrents/TV</div></div>
+                <div class="inputContainer"><label class="inputLabel" for="SeriesDestination">Destination library</label><input id="SeriesDestination" type="text" is="emby-input" /><div class="fieldDescription">Example: /media/TV</div></div>
+                <div class="inputContainer"><label class="inputLabel" for="SeriesFolderTemplate">Series folder template</label><input id="SeriesFolderTemplate" type="text" is="emby-input" /></div>
+                <div class="inputContainer"><label class="inputLabel" for="SeasonFolderTemplate">Season folder template</label><input id="SeasonFolderTemplate" type="text" is="emby-input" /></div>
+                <div class="inputContainer"><label class="inputLabel" for="EpisodeFileTemplate">Episode file template</label><input id="EpisodeFileTemplate" type="text" is="emby-input" /></div>
+
+                <h3>File handling</h3>
+                <div class="selectContainer"><label class="selectLabel" for="Operation">Operation</label><select id="Operation" is="emby-select"><option value="Move">Move</option><option value="Copy">Copy</option><option value="Hardlink">Hardlink</option></select></div>
+                <div class="inputContainer"><label class="inputLabel" for="MinimumFileAgeMinutes">Minimum file age (minutes)</label><input id="MinimumFileAgeMinutes" type="number" min="0" is="emby-input" /><div class="fieldDescription">Helps avoid importing a file that is still being written by a downloader.</div></div>
+                <div class="inputContainer"><label class="inputLabel" for="Language">Metadata language</label><input id="Language" type="text" is="emby-input" /><div class="fieldDescription">Used by Jellyfin metadata providers. Default: ru-RU.</div></div>
+                <div class="checkboxContainer checkboxContainer-withDescription"><label class="emby-checkbox-label"><input id="UseJellyfinMetadataProviders" type="checkbox" is="emby-checkbox" /><span>Use Jellyfin metadata providers for localized titles</span></label><div class="fieldDescription">Uses the providers already configured in Jellyfin, so no separate TMDB API key is required.</div></div>
+                <div class="inputContainer"><label class="inputLabel" for="ReplaceColonWith">Replace colon (:) with</label><input id="ReplaceColonWith" type="text" is="emby-input" /><div class="fieldDescription">Default: space-hyphen-space. Prevents Samba/Windows names such as _XSMGP~0.</div></div>
+                <div class="checkboxContainer checkboxContainer-withDescription"><label class="emby-checkbox-label"><input id="MoveAssociatedFiles" type="checkbox" is="emby-checkbox" /><span>Process associated subtitles/NFO/images</span></label></div>
+                <div class="checkboxContainer checkboxContainer-withDescription"><label class="emby-checkbox-label"><input id="DeleteEmptyFolders" type="checkbox" is="emby-checkbox" /><span>Delete empty source folders after Move</span></label></div>
+
+                <button is="emby-button" type="submit" class="raised button-submit block emby-button"><span>Save</span></button>
+            </form>
+        </div>
+    </div>
+<script type="text/javascript">
+    const AutoOrganizeConfig = { pluginUniqueId: 'b0515a71-eba2-4cca-9670-6aedba961caa' };
+    const fields = ['MoviesSource','MoviesDestination','SeriesSource','SeriesDestination','Language','ReplaceColonWith','MinimumFileAgeMinutes','MovieFolderTemplate','MovieFileTemplate','SeriesFolderTemplate','SeasonFolderTemplate','EpisodeFileTemplate','Operation'];
+    const checks = ['Enabled','DryRun','UseJellyfinMetadataProviders','MoveAssociatedFiles','DeleteEmptyFolders'];
+
+    document.querySelector('#AutoOrganizeConfigPage').addEventListener('pageshow', function () {
+        Dashboard.showLoadingMsg();
+        ApiClient.getPluginConfiguration(AutoOrganizeConfig.pluginUniqueId).then(function (config) {
+            fields.forEach(id => { document.querySelector('#' + id).value = config[id] ?? ''; });
+            checks.forEach(id => { document.querySelector('#' + id).checked = !!config[id]; });
+            Dashboard.hideLoadingMsg();
+        });
+    });
+
+    document.querySelector('#AutoOrganizeConfigForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        Dashboard.showLoadingMsg();
+        ApiClient.getPluginConfiguration(AutoOrganizeConfig.pluginUniqueId).then(function (config) {
+            fields.forEach(id => { config[id] = document.querySelector('#' + id).value; });
+            config.MinimumFileAgeMinutes = parseInt(document.querySelector('#MinimumFileAgeMinutes').value || '0', 10);
+            checks.forEach(id => { config[id] = document.querySelector('#' + id).checked; });
+            ApiClient.updatePluginConfiguration(AutoOrganizeConfig.pluginUniqueId, config).then(function (result) {
+                Dashboard.processPluginConfigurationUpdateResult(result);
+            });
+        });
+        return false;
+    });
+</script>
+</div>
+</body>
+</html>
