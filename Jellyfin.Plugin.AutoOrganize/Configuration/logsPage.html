@@ -16,6 +16,16 @@
                 .ao-panel.active{display:block}
                 .ao-actions{display:flex;gap:.7em;flex-wrap:wrap;margin:1em 0}
                 .ao-log-row{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.12)}
+                .ao-collapse{border-top:1px solid rgba(255,255,255,.14);margin:1.2em 0}
+                .ao-collapse:last-of-type{border-bottom:1px solid rgba(255,255,255,.14)}
+                .ao-collapse summary{cursor:pointer;list-style:none;padding:1em 0;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+                .ao-collapse summary::-webkit-details-marker{display:none}
+                .ao-collapse summary::after{content:'⌄';font-size:1.5em;line-height:1;color:#58c65b;transition:transform .15s ease}
+                .ao-collapse[open] summary::after{transform:rotate(180deg)}
+                .ao-collapse-body{padding:.25em .25em 1.25em .25em}
+                .ao-pattern-table{width:100%;max-width:680px;border-collapse:collapse;margin-top:.8em}
+                .ao-pattern-table th,.ao-pattern-table td{text-align:left;padding:.28em .35em;vertical-align:top}
+                .ao-pattern-result{margin-top:.35em;opacity:.72}
             </style>
 
             <h2>Auto Organize</h2>
@@ -48,9 +58,50 @@
                     <div class="inputContainer"><label class="inputLabel" for="SeriesSource">Папка наблюдения</label><input id="SeriesSource" type="text" is="emby-input" /></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesDestination">Каталог сериалов</label><input id="SeriesDestination" type="text" is="emby-input" /></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesMinimumFileAgeMinutes">Минимальный возраст файла, минут</label><input id="SeriesMinimumFileAgeMinutes" type="number" min="0" is="emby-input" /></div>
-                    <div class="inputContainer"><label class="inputLabel" for="SeriesFolderTemplate">Шаблон папки сериала</label><input id="SeriesFolderTemplate" type="text" is="emby-input" /></div>
+                    <details class="ao-collapse">
+                        <summary>Шаблон каталога сериала</summary>
+                        <div class="ao-collapse-body">
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="SeriesFolderTemplate">Шаблон сериала:</label>
+                                <input id="SeriesFolderTemplate" type="text" is="emby-input" />
+                                <div id="SeriesFolderPreview" class="ao-pattern-result">Результат:</div>
+                            </div>
+                            <h4>Поддерживаемые переменные</h4>
+                            <table class="ao-pattern-table">
+                                <thead><tr><th>Значение</th><th>Переменная</th><th>Пример</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Название сериала</td><td>{series}</td><td>Series Name</td></tr>
+                                    <tr><td>Номер сезона</td><td>{season}</td><td>1</td></tr>
+                                    <tr><td>Номер сезона с нулём</td><td>{season:00}</td><td>01</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+
                     <div class="inputContainer"><label class="inputLabel" for="SeasonFolderTemplate">Шаблон папки сезона</label><input id="SeasonFolderTemplate" type="text" is="emby-input" /></div>
-                    <div class="inputContainer"><label class="inputLabel" for="EpisodeFileTemplate">Шаблон имени серии</label><input id="EpisodeFileTemplate" type="text" is="emby-input" /></div>
+
+                    <details class="ao-collapse">
+                        <summary>Шаблон имени файла серии</summary>
+                        <div class="ao-collapse-body">
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="EpisodeFileTemplate">Шаблон серии:</label>
+                                <input id="EpisodeFileTemplate" type="text" is="emby-input" />
+                                <div id="EpisodeFilePreview" class="ao-pattern-result">Результат:</div>
+                            </div>
+                            <h4>Поддерживаемые переменные</h4>
+                            <table class="ao-pattern-table">
+                                <thead><tr><th>Значение</th><th>Переменная</th><th>Пример</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Название сериала</td><td>{series}</td><td>Series Name</td></tr>
+                                    <tr><td>Номер сезона</td><td>{season}</td><td>1</td></tr>
+                                    <tr><td>Номер сезона с нулём</td><td>{season:00}</td><td>01</td></tr>
+                                    <tr><td>Номер серии</td><td>{episode}</td><td>4</td></tr>
+                                    <tr><td>Номер серии с нулём</td><td>{episode:00}</td><td>04</td></tr>
+                                    <tr><td>Расширение файла</td><td>{ext}</td><td>.mkv</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
                     <div class="selectContainer"><label class="selectLabel" for="SeriesOperation">Метод переноса</label><select id="SeriesOperation" is="emby-select"><option value="Move">Переместить</option><option value="Copy">Копировать</option><option value="Hardlink">Hardlink</option></select></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesLanguage">Язык метаданных</label><input id="SeriesLanguage" type="text" is="emby-input" /></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesReplaceColonWith">Заменять двоеточие на</label><input id="SeriesReplaceColonWith" type="text" is="emby-input" /></div>
@@ -73,8 +124,45 @@
                     <div class="inputContainer"><label class="inputLabel" for="MoviesSource">Папка наблюдения</label><input id="MoviesSource" type="text" is="emby-input" /></div>
                     <div class="inputContainer"><label class="inputLabel" for="MoviesDestination">Каталог фильмов</label><input id="MoviesDestination" type="text" is="emby-input" /></div>
                     <div class="inputContainer"><label class="inputLabel" for="MoviesMinimumFileAgeMinutes">Минимальный возраст файла, минут</label><input id="MoviesMinimumFileAgeMinutes" type="number" min="0" is="emby-input" /></div>
-                    <div class="inputContainer"><label class="inputLabel" for="MovieFolderTemplate">Шаблон папки фильма</label><input id="MovieFolderTemplate" type="text" is="emby-input" /></div>
-                    <div class="inputContainer"><label class="inputLabel" for="MovieFileTemplate">Шаблон имени файла</label><input id="MovieFileTemplate" type="text" is="emby-input" /></div>
+                    <details class="ao-collapse">
+                        <summary>Шаблон каталога фильма</summary>
+                        <div class="ao-collapse-body">
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="MovieFolderTemplate">Шаблон каталога фильма:</label>
+                                <input id="MovieFolderTemplate" type="text" is="emby-input" />
+                                <div id="MovieFolderPreview" class="ao-pattern-result">Результат:</div>
+                            </div>
+                            <h4>Поддерживаемые переменные</h4>
+                            <table class="ao-pattern-table">
+                                <thead><tr><th>Значение</th><th>Переменная</th><th>Пример</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Название фильма</td><td>{title}</td><td>Movie Name</td></tr>
+                                    <tr><td>Год выпуска</td><td>{year}</td><td>2017</td></tr>
+                                    <tr><td>Расширение файла</td><td>{ext}</td><td>.mkv</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+
+                    <details class="ao-collapse">
+                        <summary>Шаблон имени файла фильма</summary>
+                        <div class="ao-collapse-body">
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="MovieFileTemplate">Шаблон файла:</label>
+                                <input id="MovieFileTemplate" type="text" is="emby-input" />
+                                <div id="MovieFilePreview" class="ao-pattern-result">Результат:</div>
+                            </div>
+                            <h4>Поддерживаемые переменные</h4>
+                            <table class="ao-pattern-table">
+                                <thead><tr><th>Значение</th><th>Переменная</th><th>Пример</th></tr></thead>
+                                <tbody>
+                                    <tr><td>Название фильма</td><td>{title}</td><td>Movie Name</td></tr>
+                                    <tr><td>Год выпуска</td><td>{year}</td><td>2017</td></tr>
+                                    <tr><td>Расширение файла</td><td>{ext}</td><td>.mkv</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
                     <div class="selectContainer"><label class="selectLabel" for="MoviesOperation">Метод переноса</label><select id="MoviesOperation" is="emby-select"><option value="Move">Переместить</option><option value="Copy">Копировать</option><option value="Hardlink">Hardlink</option></select></div>
                     <div class="inputContainer"><label class="inputLabel" for="MoviesLanguage">Язык метаданных</label><input id="MoviesLanguage" type="text" is="emby-input" /></div>
                     <div class="inputContainer"><label class="inputLabel" for="MoviesReplaceColonWith">Заменять двоеточие на</label><input id="MoviesReplaceColonWith" type="text" is="emby-input" /></div>
@@ -143,6 +231,30 @@
         }).join('');
     }
 
+    function renderMoviePreview(template) {
+        return String(template || '')
+            .replace(/\{title\}/gi, 'Movie Name')
+            .replace(/\{year\}/gi, '2017')
+            .replace(/\{ext\}/gi, '.mkv');
+    }
+
+    function renderEpisodePreview(template) {
+        return String(template || '')
+            .replace(/\{series\}/gi, 'Series Name')
+            .replace(/\{season:00\}/gi, '01')
+            .replace(/\{episode:00\}/gi, '04')
+            .replace(/\{season\}/gi, '1')
+            .replace(/\{episode\}/gi, '4')
+            .replace(/\{ext\}/gi, '.mkv');
+    }
+
+    function updatePatternPreviews() {
+        q('SeriesFolderPreview').textContent = 'Результат: ' + renderEpisodePreview(q('SeriesFolderTemplate').value);
+        q('EpisodeFilePreview').textContent = 'Результат: ' + renderEpisodePreview(q('EpisodeFileTemplate').value);
+        q('MovieFolderPreview').textContent = 'Результат: ' + renderMoviePreview(q('MovieFolderTemplate').value);
+        q('MovieFilePreview').textContent = 'Результат: ' + renderMoviePreview(q('MovieFileTemplate').value);
+    }
+
     function fillConfig(config) {
         ['SeriesSource','SeriesDestination','SeriesMinimumFileAgeMinutes','SeriesFolderTemplate','SeasonFolderTemplate','EpisodeFileTemplate','SeriesOperation',
          'MoviesSource','MoviesDestination','MoviesMinimumFileAgeMinutes','MovieFolderTemplate','MovieFileTemplate','MoviesOperation'].forEach(id => {
@@ -161,6 +273,7 @@
 
         q('SeriesUseJellyfinMetadataProviders').checked = !!config.UseJellyfinMetadataProviders;
         q('MoviesUseJellyfinMetadataProviders').checked = !!config.UseJellyfinMetadataProviders;
+        updatePatternPreviews();
         renderLog(config);
     }
 
@@ -252,6 +365,10 @@
     q('AutoOrganizePage').addEventListener('pageshow', loadAll);
     q('SeriesForm').addEventListener('submit', saveSeries);
     q('MoviesForm').addEventListener('submit', saveMovies);
+
+    ['SeriesFolderTemplate','EpisodeFileTemplate','MovieFolderTemplate','MovieFileTemplate'].forEach(id => {
+        q(id).addEventListener('input', updatePatternPreviews);
+    });
 
     q('RunAutoOrganize').addEventListener('click', function () {
         setRunState(true, 'Запуск Auto Organize…');
