@@ -79,6 +79,7 @@ public sealed class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
             {
                 Name = "AutoOrganize",
                 DisplayName = "Auto Organize",
+                EnableInMainMenu = true,
                 EmbeddedResourcePath = string.Format(
                     CultureInfo.InvariantCulture,
                     "{0}.Configuration.logsPage.html",
