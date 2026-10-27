@@ -58,6 +58,19 @@
                     <div class="inputContainer"><label class="inputLabel" for="SeriesSource">Папка наблюдения</label><input id="SeriesSource" type="text" is="emby-input" /></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesDestination">Каталог сериалов</label><input id="SeriesDestination" type="text" is="emby-input" /></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesMinimumFileAgeMinutes">Минимальный возраст файла, минут</label><input id="SeriesMinimumFileAgeMinutes" type="number" min="0" is="emby-input" /></div>
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="SeasonFolderTemplate">Шаблон папки сезона:</label>
+                        <input id="SeasonFolderTemplate" type="text" is="emby-input" />
+                        <div id="SeasonFolderPreview" class="ao-pattern-result">Результат: Season 1</div>
+                        <div class="fieldDescription">Пример: Season %s → Season 1, Season %0s → Season 01.</div>
+                        <div id="SeasonFolderWarning" class="fieldDescription" style="display:none;color:#ffb74d">Сейчас вместо номера сезона используется имя сериала. Рекомендуется: Season %s</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="SeasonZeroFolderName">Имя папки нулевого сезона:</label>
+                        <input id="SeasonZeroFolderName" type="text" is="emby-input" />
+                        <div id="SeasonZeroFolderPreview" class="ao-pattern-result">Результат: Season 00</div>
+                        <div class="fieldDescription">Используется для спецвыпусков (S00) вместо обычного шаблона сезона.</div>
+                    </div>
                     <details class="ao-collapse">
                         <summary>Шаблон каталога сериала</summary>
                         <div class="ao-collapse-body">
@@ -76,12 +89,14 @@
                                     <tr><td>Год выпуска</td><td><code>%sy</code></td><td>2017</td></tr>
                                     <tr><td>Имя исходной папки</td><td><code>%fn</code></td><td>Series Name (2017)</td></tr>
                                     <tr><td>Совместимость</td><td><code>{series}</code></td><td>Series Name</td></tr>
+                                    <tr><td>FileBot: сериал</td><td><code>{n}</code></td><td>Series Name</td></tr>
+                                    <tr><td>FileBot: год</td><td><code>{y}</code></td><td>2017</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </details>
 
-                    <div class="inputContainer"><label class="inputLabel" for="SeasonFolderTemplate">Шаблон папки сезона</label><input id="SeasonFolderTemplate" type="text" is="emby-input" /></div>
+
 
                     <details class="ao-collapse">
                         <summary>Шаблон имени файла серии</summary>
@@ -90,8 +105,8 @@
                                 <label class="inputLabel" for="EpisodeFileTemplate">Шаблон серии:</label>
                                 <input id="EpisodeFileTemplate" type="text" is="emby-input" />
                                 <div id="EpisodeFilePreview" class="ao-pattern-result">Результат:</div>
-                            <div class="inputContainer"><label class="inputLabel" for="MultiEpisodeFileTemplate">Шаблон нескольких серий</label><input id="MultiEpisodeFileTemplate" type="text" is="emby-input" /><div id="MultiEpisodePreview" class="ao-pattern-result"></div></div>
                             </div>
+                            <div class="inputContainer"><label class="inputLabel" for="MultiEpisodeFileTemplate">Шаблон нескольких серий</label><input id="MultiEpisodeFileTemplate" type="text" is="emby-input" /><div id="MultiEpisodePreview" class="ao-pattern-result"></div></div>
                             <h4>Поддерживаемые переменные</h4>
                             <table class="ao-pattern-table">
                                 <thead><tr><th>Значение</th><th>Переменная</th><th>Пример</th></tr></thead>
@@ -111,12 +126,18 @@
                                     <tr><td>Расширение без точки</td><td><code>%ext</code></td><td>mkv</td></tr>
                                     <tr><td>Исходное имя файла</td><td><code>%fn</code></td><td>filename</td></tr>
                                     <tr><td>Совместимость</td><td><code>{episodeTitle}</code></td><td>Episode Four</td></tr>
+                                    <tr><td>FileBot: название сериала</td><td><code>{n}</code></td><td>Series Name</td></tr>
+                                    <tr><td>FileBot: год сериала</td><td><code>{y}</code></td><td>2017</td></tr>
+                                    <tr><td>FileBot: номер сезона и серии</td><td><code>{s00e00}</code></td><td>S01E04</td></tr>
+                                    <tr><td>FileBot: название эпизода</td><td><code>{t}</code></td><td>Episode Four</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </details>
+                    <div id="SeriesPathPreview" class="ao-pattern-result" style="margin:1em 0 1.7em"></div>
+                    <div class="fieldDescription">Поддерживаются перечисленные переменные FileBot, но не произвольные выражения Groovy.</div>
                     <div class="selectContainer"><label class="selectLabel" for="SeriesOperation">Метод переноса</label><select id="SeriesOperation" is="emby-select"><option value="Move">Переместить</option><option value="Copy">Копировать</option><option value="Hardlink">Hardlink</option></select></div>
-                    <div class="inputContainer"><label class="inputLabel" for="TmdbApiKey">TMDB API Key (v3 или Read Access Token)</label><input id="TmdbApiKey" type="password" autocomplete="off" is="emby-input" /><div class="fieldDescription">Ключ используется для получения названий серий, не показывается в журнале.</div></div>
+                    <div class="inputContainer"><label class="inputLabel" for="TmdbApiKey">TMDB API Key (v3 или Read Access Token)</label><input id="TmdbApiKey" type="password" autocomplete="off" is="emby-input" /><div class="fieldDescription">Ключ используется для получения названий серий. Если TMDB не ответит, причина появится во вкладке «Логи». Ключ не выводится в журнал.</div></div>
                     <div class="checkboxContainer checkboxContainer-withDescription"><label class="emby-checkbox-label"><input id="UseTmdbEpisodeTitles" type="checkbox" is="emby-checkbox" /><span>Получать названия эпизодов из TMDB</span></label></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesLanguage">Язык метаданных</label><input id="SeriesLanguage" type="text" is="emby-input" /></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesReplaceColonWith">Заменять двоеточие на</label><input id="SeriesReplaceColonWith" type="text" is="emby-input" /></div>
@@ -254,18 +275,9 @@
         }).join('');
     }
 
-    function renderMoviePreview(template) {
-        const example = {
-            '{title}':'Movie Name', '{year}':'2017', '{ext}':'.mkv',
-            '%mn':'Movie Name', '%m.n':'Movie.Name', '%m_n':'Movie_Name',
-            '%my':'2017', '%ext':'mkv', '%fn':'filename'
-        };
-        return String(template || '').replace(/\{title\}|\{year\}|\{ext\}|%m\.n|%m_n|%mn|%my|%ext|%fn/gi,
-            token => example[token] ?? example[token.toLowerCase()] ?? token);
-    }
-
-    function renderEpisodePreview(template, folder = false) {
-        const example = {
+    function renderPattern(template, kind, directory = false) {
+        const series = kind === 'series';
+        const values = series ? {
             '{series}':'Series Name', '{season}':'1', '{season:00}':'01',
             '{episode}':'4', '{episode:00}':'04', '{episodeTitle}':'Episode Four',
             '{endingEpisode:00}':'05', '{ext}':'.mkv',
@@ -273,26 +285,46 @@
             '%sy':'2017', '%s':'1', '%0s':'01', '%e':'4', '%0e':'04',
             '%ed':'5', '%0ed':'05', '%en':'Episode Four',
             '%e.n':'Episode.Four', '%e_n':'Episode_Four',
-            '%ext':'mkv', '%fn': folder ? 'Series Name (2017)' : 'filename'
+            '%ext':'mkv', '%fn':directory ? 'Series Name (2017)' : 'filename',
+            '{n}':'Series Name', '{y}':'2017', '{s}':'1', '{e}':'4',
+            '{s00e00}':'S01E04', '{t}':'Episode Four',
+            "{'Season 0'+s}":'Season 01'
+        } : {
+            '{title}':'Movie Name', '{year}':'2017', '{ext}':'.mkv',
+            '%mn':'Movie Name', '%m.n':'Movie.Name', '%m_n':'Movie_Name',
+            '%my':'2017', '%ext':'mkv', '%fn':'filename',
+            '{n}':'Movie Name', '{y}':'2017'
         };
-        return String(template || '').replace(/\{endingEpisode:00\}|\{episodeTitle\}|\{season:00\}|\{episode:00\}|\{series\}|\{season\}|\{episode\}|\{ext\}|%0ed|%0e|%0s|%s\.n|%s_n|%sn|%sy|%e\.n|%e_n|%en|%ed|%ext|%fn|%s|%e/gi,
-            token => example[token] ?? example[token.toLowerCase()] ?? token);
+        let result = String(template || '');
+        Object.keys(values).sort((a,b) => b.length - a.length).forEach(key => {
+            result = result.split(key).join(values[key]);
+        });
+        return result.replace(/ \(\)/g, '').trim();
     }
 
     function updatePatternPreviews() {
-        q('SeriesFolderPreview').textContent = 'Результат: ' + renderEpisodePreview(q('SeriesFolderTemplate').value, true);
-        q('EpisodeFilePreview').textContent = 'Результат: ' + renderEpisodePreview(q('EpisodeFileTemplate').value);
-        q('MultiEpisodePreview').textContent = 'Результат: ' + renderEpisodePreview(q('MultiEpisodeFileTemplate').value);
-        q('MovieFolderPreview').textContent = 'Результат: ' + renderMoviePreview(q('MovieFolderTemplate').value);
-        q('MovieFilePreview').textContent = 'Результат: ' + renderMoviePreview(q('MovieFileTemplate').value);
+        const seriesFolder = renderPattern(q('SeriesFolderTemplate').value, 'series', true);
+        const seasonFolder = renderPattern(q('SeasonFolderTemplate').value, 'series');
+        const episodeFile = renderPattern(q('EpisodeFileTemplate').value, 'series');
+        q('SeriesFolderPreview').textContent = 'Результат: ' + seriesFolder;
+        q('SeasonFolderPreview').textContent = 'Результат: ' + seasonFolder;
+        q('SeasonZeroFolderPreview').textContent = 'Результат: ' + renderPattern(q('SeasonZeroFolderName').value, 'series');
+        q('EpisodeFilePreview').textContent = 'Результат: ' + episodeFile;
+        q('MultiEpisodePreview').textContent = 'Результат: ' + renderPattern(q('MultiEpisodeFileTemplate').value, 'series');
+        q('MovieFolderPreview').textContent = 'Результат: ' + renderPattern(q('MovieFolderTemplate').value, 'movie');
+        q('MovieFilePreview').textContent = 'Результат: ' + renderPattern(q('MovieFileTemplate').value, 'movie');
+        q('SeriesPathPreview').textContent = 'Пример итогового пути: ' + [seriesFolder, seasonFolder, episodeFile].filter(Boolean).join(' / ');
+        q('SeasonFolderWarning').style.display =
+            /%sn|\{series\}|\{n\}/.test(q('SeasonFolderTemplate').value) ? 'block' : 'none';
     }
 
     function fillConfig(config) {
-        ['SeriesSource','SeriesDestination','SeriesMinimumFileAgeMinutes','SeriesFolderTemplate','SeasonFolderTemplate','EpisodeFileTemplate','MultiEpisodeFileTemplate','SeriesOperation',
+        ['SeriesSource','SeriesDestination','SeriesMinimumFileAgeMinutes','SeriesFolderTemplate','SeasonFolderTemplate','SeasonZeroFolderName','EpisodeFileTemplate','MultiEpisodeFileTemplate','SeriesOperation',
          'MoviesSource','MoviesDestination','MoviesMinimumFileAgeMinutes','MovieFolderTemplate','MovieFileTemplate','MoviesOperation'].forEach(id => {
             q(id).value = config[id] ?? '';
         });
 
+        q('SeasonZeroFolderName').value = config.SeasonZeroFolderName || 'Season 00';
         q('TmdbApiKey').value = config.TmdbApiKey ?? '';
         q('UseTmdbEpisodeTitles').checked = config.UseTmdbEpisodeTitles !== false;
         q('SeriesLanguage').value = config.Language ?? 'ru-RU';
@@ -342,6 +374,7 @@
             config.SeriesMinimumFileAgeMinutes = parseInt(q('SeriesMinimumFileAgeMinutes').value || '0', 10);
             config.SeriesFolderTemplate = q('SeriesFolderTemplate').value;
             config.SeasonFolderTemplate = q('SeasonFolderTemplate').value;
+            config.SeasonZeroFolderName = q('SeasonZeroFolderName').value;
             config.EpisodeFileTemplate = q('EpisodeFileTemplate').value;
             config.MultiEpisodeFileTemplate = q('MultiEpisodeFileTemplate').value;
             config.TmdbApiKey = q('TmdbApiKey').value;
@@ -403,7 +436,7 @@
     q('SeriesForm').addEventListener('submit', saveSeries);
     q('MoviesForm').addEventListener('submit', saveMovies);
 
-    ['SeriesFolderTemplate','EpisodeFileTemplate','MultiEpisodeFileTemplate','MovieFolderTemplate','MovieFileTemplate'].forEach(id => {
+    ['SeriesFolderTemplate','SeasonFolderTemplate','SeasonZeroFolderName','EpisodeFileTemplate','MultiEpisodeFileTemplate','MovieFolderTemplate','MovieFileTemplate'].forEach(id => {
         q(id).addEventListener('input', updatePatternPreviews);
     });
 
