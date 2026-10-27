@@ -55,7 +55,8 @@ public static partial class MediaFileParser
             SeriesYear: year,
             EndingEpisode: endingEpisode,
             SourceStem: name,
-            SourceDirectory: Path.GetFileName(Path.GetDirectoryName(filePath)));
+            SourceDirectory: Path.GetFileName(Path.GetDirectoryName(filePath)),
+            OriginalSeriesTitle: series);
     }
 
     private static string CleanTitle(string value)
@@ -91,4 +92,5 @@ public sealed record EpisodeInfo(
     string? SourceStem = null,
     string? SourceDirectory = null,
     int? TmdbSeriesId = null,
-    string? TmdbLookupMessage = null);
+    string? TmdbLookupMessage = null,
+    string? OriginalSeriesTitle = null);
