@@ -97,12 +97,19 @@
                                     <tr><td>Номер сезона с нулём</td><td>{season:00}</td><td>01</td></tr>
                                     <tr><td>Номер серии</td><td>{episode}</td><td>4</td></tr>
                                     <tr><td>Номер серии с нулём</td><td>{episode:00}</td><td>04</td></tr>
-                                    <tr><td>Расширение файла</td><td>{ext}</td><td>.mkv</td></tr>
+                                    <tr><td>Название серии из TMDB</td><td>{episodeTitle} или %en</td><td>Episode Four</td></tr>
+                                    <tr><td>Номер сезона</td><td>%0s</td><td>01</td></tr>
+                                    <tr><td>Номер эпизода</td><td>%0e</td><td>04</td></tr>
+                                    <tr><td>Последний эпизод</td><td>%0ed</td><td>05</td></tr>
+                                    <tr><td>Расширение файла</td><td>{ext} или %ext</td><td>.mkv / mkv</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </details>
                     <div class="selectContainer"><label class="selectLabel" for="SeriesOperation">Метод переноса</label><select id="SeriesOperation" is="emby-select"><option value="Move">Переместить</option><option value="Copy">Копировать</option><option value="Hardlink">Hardlink</option></select></div>
+                    <div class="inputContainer"><label class="inputLabel" for="TmdbApiKey">TMDB API Key (v3 или Read Access Token)</label><input id="TmdbApiKey" type="password" autocomplete="off" is="emby-input" /><div class="fieldDescription">Ключ используется для получения названий серий, не показывается в журнале.</div></div>
+                    <div class="checkboxContainer checkboxContainer-withDescription"><label class="emby-checkbox-label"><input id="UseTmdbEpisodeTitles" type="checkbox" is="emby-checkbox" /><span>Получать названия эпизодов из TMDB</span></label></div>
+                    <div class="inputContainer"><label class="inputLabel" for="MultiEpisodeFileTemplate">Шаблон нескольких серий</label><input id="MultiEpisodeFileTemplate" type="text" is="emby-input" /><div id="MultiEpisodePreview" class="ao-pattern-result"></div></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesLanguage">Язык метаданных</label><input id="SeriesLanguage" type="text" is="emby-input" /></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesReplaceColonWith">Заменять двоеточие на</label><input id="SeriesReplaceColonWith" type="text" is="emby-input" /></div>
                     <div class="checkboxContainer checkboxContainer-withDescription"><label class="emby-checkbox-label"><input id="SeriesUseJellyfinMetadataProviders" type="checkbox" is="emby-checkbox" /><span>Использовать провайдеры Jellyfin для названий</span></label></div>
@@ -250,17 +257,20 @@
 
     function updatePatternPreviews() {
         q('SeriesFolderPreview').textContent = 'Результат: ' + renderEpisodePreview(q('SeriesFolderTemplate').value);
-        q('EpisodeFilePreview').textContent = 'Результат: ' + renderEpisodePreview(q('EpisodeFileTemplate').value);
+        q('EpisodeFilePreview').textContent = 'Результат: ' + renderEpisodePreview(q('EpisodeFileTemplate').value).replace(/\\{episodeTitle\\}|%en/g, 'Episode Four').replace(/%0s/g, '01').replace(/%0e/g, '04').replace(/%ext/g, 'mkv');
+        q('MultiEpisodePreview').textContent = 'Результат: ' + renderEpisodePreview(q('MultiEpisodeFileTemplate').value).replace(/\\{episodeTitle\\}|%en/g, 'Episode Four').replace(/%0ed/g, '05').replace(/%0s/g, '01').replace(/%0e/g, '04').replace(/%ext/g, 'mkv');
         q('MovieFolderPreview').textContent = 'Результат: ' + renderMoviePreview(q('MovieFolderTemplate').value);
         q('MovieFilePreview').textContent = 'Результат: ' + renderMoviePreview(q('MovieFileTemplate').value);
     }
 
     function fillConfig(config) {
-        ['SeriesSource','SeriesDestination','SeriesMinimumFileAgeMinutes','SeriesFolderTemplate','SeasonFolderTemplate','EpisodeFileTemplate','SeriesOperation',
+        ['SeriesSource','SeriesDestination','SeriesMinimumFileAgeMinutes','SeriesFolderTemplate','SeasonFolderTemplate','EpisodeFileTemplate','MultiEpisodeFileTemplate','SeriesOperation',
          'MoviesSource','MoviesDestination','MoviesMinimumFileAgeMinutes','MovieFolderTemplate','MovieFileTemplate','MoviesOperation'].forEach(id => {
             q(id).value = config[id] ?? '';
         });
 
+        q('TmdbApiKey').value = config.TmdbApiKey ?? '';
+        q('UseTmdbEpisodeTitles').checked = config.UseTmdbEpisodeTitles !== false;
         q('SeriesLanguage').value = config.Language ?? 'ru-RU';
         q('MoviesLanguage').value = config.Language ?? 'ru-RU';
         q('SeriesReplaceColonWith').value = config.ReplaceColonWith ?? ' - ';
@@ -309,6 +319,9 @@
             config.SeriesFolderTemplate = q('SeriesFolderTemplate').value;
             config.SeasonFolderTemplate = q('SeasonFolderTemplate').value;
             config.EpisodeFileTemplate = q('EpisodeFileTemplate').value;
+            config.MultiEpisodeFileTemplate = q('MultiEpisodeFileTemplate').value;
+            config.TmdbApiKey = q('TmdbApiKey').value;
+            config.UseTmdbEpisodeTitles = q('UseTmdbEpisodeTitles').checked;
             config.SeriesOperation = q('SeriesOperation').value;
             config.SeriesEnabled = q('SeriesEnabled').checked;
             config.SeriesDryRun = q('SeriesDryRun').checked;
@@ -366,7 +379,7 @@
     q('SeriesForm').addEventListener('submit', saveSeries);
     q('MoviesForm').addEventListener('submit', saveMovies);
 
-    ['SeriesFolderTemplate','EpisodeFileTemplate','MovieFolderTemplate','MovieFileTemplate'].forEach(id => {
+    ['SeriesFolderTemplate','EpisodeFileTemplate','MultiEpisodeFileTemplate','MovieFolderTemplate','MovieFileTemplate'].forEach(id => {
         q(id).addEventListener('input', updatePatternPreviews);
     });
 
