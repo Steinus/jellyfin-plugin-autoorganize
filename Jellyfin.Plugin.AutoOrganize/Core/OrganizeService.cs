@@ -141,7 +141,7 @@ public sealed class OrganizeService
 
                 var ext = Path.GetExtension(source);
                 var seriesFolder = FilenameSanitizer.Sanitize(
-                    TemplateRenderer.Episode(config.SeriesFolderTemplate, info, string.Empty, config.ReplaceColonWith),
+                    TemplateRenderer.Episode(config.SeriesFolderTemplate, info, string.Empty, config.ReplaceColonWith, sourceDirectoryPattern: true),
                     config.ReplaceColonWith);
                 var seasonFolder = FilenameSanitizer.Sanitize(
                     TemplateRenderer.Episode(config.SeasonFolderTemplate, info, string.Empty, config.ReplaceColonWith),
