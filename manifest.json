@@ -6,6 +6,15 @@
     "overview": "Auto Organize: импорт, переименование и названия эпизодов TMDB.",
     "owner": "Steinus",
     "category": "General",
-    "versions": []
+    "versions": [
+      {
+        "version": "0.2.5.1",
+        "changelog": "Automatic build from main: TMDB episode titles and organizer improvements.",
+        "targetAbi": "12.2.0.0",
+        "sourceUrl": "https://github.com/Steinus/jellyfin-plugin-autoorganize/releases/download/v0.2.5.1/autoorganize_0.2.5.1.zip",
+        "checksum": "6f3270fd60fb0e267bc12a4ecea2a61f",
+        "timestamp": "2026-10-27T19:58:20.170611Z"
+      }
+    ]
   }
 ]
