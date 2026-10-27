@@ -1,0 +1,76 @@
+name: Publish Jellyfin Plugin
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - manifest.json
+      - README.md
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: jellyfin-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Determine version
+        id: version
+        shell: bash
+        run: |
+          VERSION="0.2.4.${{ github.run_number }}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Build plugin
+        run: |
+          dotnet restore Jellyfin.Plugin.AutoOrganize.slnx
+          dotnet build Jellyfin.Plugin.AutoOrganize.slnx -c Release --no-restore -p:Version=${{ steps.version.outputs.version }} -p:AssemblyVersion=${{ steps.version.outputs.version }} -p:FileVersion=${{ steps.version.outputs.version }}
+      - name: Prepare plugin ZIP and manifest
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import datetime, hashlib, json, os, pathlib, zipfile
+          version = os.environ["VERSION"]
+          binary = pathlib.Path("Jellyfin.Plugin.AutoOrganize/bin/Release/net10.0/Jellyfin.Plugin.AutoOrganize.dll")
+          assert binary.is_file(), "Plugin DLL not found"
+          package = pathlib.Path(f"autoorganize_{version}.zip")
+          meta = {"guid":"b0515a71-eba2-4cca-9670-6aedba961caa","name":"Auto Organize","version":version,"targetAbi":"12.2.0.0","status":"Active","autoUpdate":True}
+          with zipfile.ZipFile(package,"w",zipfile.ZIP_DEFLATED) as z:
+              z.write(binary,"Jellyfin.Plugin.AutoOrganize.dll")
+              z.writestr("meta.json",json.dumps(meta))
+          checksum = hashlib.md5(package.read_bytes()).hexdigest()
+          manifest_path = pathlib.Path("manifest.json")
+          manifest = json.loads(manifest_path.read_text())
+          manifest[0]["versions"].insert(0,{
+              "version":version,
+              "changelog":"Automatic build from main: TMDB episode titles and organizer improvements.",
+              "targetAbi":"12.2.0.0",
+              "sourceUrl":f"https://github.com/{os.environ['REPOSITORY']}/releases/download/v{version}/{package.name}",
+              "checksum":checksum,
+              "timestamp":datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00","Z")})
+          manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n")
+          PY
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" "autoorganize_$VERSION.zip" --title "Auto Organize v$VERSION" --notes "Automatic Jellyfin plugin build ($GITHUB_SHA)" --target "$GITHUB_SHA"
+      - name: Update repository manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add manifest.json
+          git diff --cached --quiet || { git commit -m "chore: publish Jellyfin repository manifest [skip ci]"; git push; }
