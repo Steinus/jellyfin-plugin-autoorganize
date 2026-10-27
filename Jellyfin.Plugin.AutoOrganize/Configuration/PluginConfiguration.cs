@@ -71,7 +71,10 @@ public sealed class PluginConfiguration : BasePluginConfiguration
         MovieFileTemplate = "{title} ({year}){ext}";
         SeriesFolderTemplate = "{series}";
         SeasonFolderTemplate = "Season {season:00}";
-        EpisodeFileTemplate = "{series} - S{season:00}E{episode:00}{ext}";
+        EpisodeFileTemplate = "{series} - S{season:00}E{episode:00} - {episodeTitle}{ext}";
+        MultiEpisodeFileTemplate = "{series} - S{season:00}E{episode:00}-E{endingEpisode:00} - {episodeTitle}{ext}";
+        TmdbApiKey = string.Empty;
+        UseTmdbEpisodeTitles = true;
 
         MoviesMoveAssociatedFiles = true;
         SeriesMoveAssociatedFiles = true;
@@ -128,6 +131,12 @@ public sealed class PluginConfiguration : BasePluginConfiguration
     public string SeasonFolderTemplate { get; set; }
 
     public string EpisodeFileTemplate { get; set; }
+
+    public string MultiEpisodeFileTemplate { get; set; }
+
+    public string TmdbApiKey { get; set; }
+
+    public bool UseTmdbEpisodeTitles { get; set; }
 
     public bool MoviesMoveAssociatedFiles { get; set; }
 
