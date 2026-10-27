@@ -70,9 +70,12 @@
                             <table class="ao-pattern-table">
                                 <thead><tr><th>Значение</th><th>Переменная</th><th>Пример</th></tr></thead>
                                 <tbody>
-                                    <tr><td>Название сериала</td><td>{series}</td><td>Series Name</td></tr>
-                                    <tr><td>Номер сезона</td><td>{season}</td><td>1</td></tr>
-                                    <tr><td>Номер сезона с нулём</td><td>{season:00}</td><td>01</td></tr>
+                                    <tr><td>Название сериала</td><td><code>%sn</code></td><td>Series Name</td></tr>
+                                    <tr><td>Слова через точки</td><td><code>%s.n</code></td><td>Series.Name</td></tr>
+                                    <tr><td>Слова через подчёркивания</td><td><code>%s_n</code></td><td>Series_Name</td></tr>
+                                    <tr><td>Год выпуска</td><td><code>%sy</code></td><td>2017</td></tr>
+                                    <tr><td>Имя исходной папки</td><td><code>%fn</code></td><td>Series Name (2017)</td></tr>
+                                    <tr><td>Совместимость</td><td><code>{series}</code></td><td>Series Name</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -87,21 +90,27 @@
                                 <label class="inputLabel" for="EpisodeFileTemplate">Шаблон серии:</label>
                                 <input id="EpisodeFileTemplate" type="text" is="emby-input" />
                                 <div id="EpisodeFilePreview" class="ao-pattern-result">Результат:</div>
+                            <div class="inputContainer"><label class="inputLabel" for="MultiEpisodeFileTemplate">Шаблон нескольких серий</label><input id="MultiEpisodeFileTemplate" type="text" is="emby-input" /><div id="MultiEpisodePreview" class="ao-pattern-result"></div></div>
                             </div>
                             <h4>Поддерживаемые переменные</h4>
                             <table class="ao-pattern-table">
                                 <thead><tr><th>Значение</th><th>Переменная</th><th>Пример</th></tr></thead>
                                 <tbody>
-                                    <tr><td>Название сериала</td><td>{series}</td><td>Series Name</td></tr>
-                                    <tr><td>Номер сезона</td><td>{season}</td><td>1</td></tr>
-                                    <tr><td>Номер сезона с нулём</td><td>{season:00}</td><td>01</td></tr>
-                                    <tr><td>Номер серии</td><td>{episode}</td><td>4</td></tr>
-                                    <tr><td>Номер серии с нулём</td><td>{episode:00}</td><td>04</td></tr>
-                                    <tr><td>Название серии из TMDB</td><td>{episodeTitle} или %en</td><td>Episode Four</td></tr>
-                                    <tr><td>Номер сезона</td><td>%0s</td><td>01</td></tr>
-                                    <tr><td>Номер эпизода</td><td>%0e</td><td>04</td></tr>
-                                    <tr><td>Последний эпизод</td><td>%0ed</td><td>05</td></tr>
-                                    <tr><td>Расширение файла</td><td>{ext} или %ext</td><td>.mkv / mkv</td></tr>
+                                    <tr><td>Название сериала</td><td><code>%sn</code></td><td>Series Name</td></tr>
+                                    <tr><td>Слова через точки</td><td><code>%s.n</code></td><td>Series.Name</td></tr>
+                                    <tr><td>Слова через подчёркивания</td><td><code>%s_n</code></td><td>Series_Name</td></tr>
+                                    <tr><td>Номер сезона</td><td><code>%s</code></td><td>1</td></tr>
+                                    <tr><td>Номер сезона с нулём</td><td><code>%0s</code></td><td>01</td></tr>
+                                    <tr><td>Номер серии</td><td><code>%e</code></td><td>4</td></tr>
+                                    <tr><td>Номер серии с нулём</td><td><code>%0e</code></td><td>04</td></tr>
+                                    <tr><td>Последняя серия</td><td><code>%ed</code></td><td>5</td></tr>
+                                    <tr><td>Последняя серия с нулём</td><td><code>%0ed</code></td><td>05</td></tr>
+                                    <tr><td>Название серии из TMDB</td><td><code>%en</code></td><td>Episode Four</td></tr>
+                                    <tr><td>Название серии через точки</td><td><code>%e.n</code></td><td>Episode.Four</td></tr>
+                                    <tr><td>Название серии через подчёркивания</td><td><code>%e_n</code></td><td>Episode_Four</td></tr>
+                                    <tr><td>Расширение без точки</td><td><code>%ext</code></td><td>mkv</td></tr>
+                                    <tr><td>Исходное имя файла</td><td><code>%fn</code></td><td>filename</td></tr>
+                                    <tr><td>Совместимость</td><td><code>{episodeTitle}</code></td><td>Episode Four</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -109,7 +118,6 @@
                     <div class="selectContainer"><label class="selectLabel" for="SeriesOperation">Метод переноса</label><select id="SeriesOperation" is="emby-select"><option value="Move">Переместить</option><option value="Copy">Копировать</option><option value="Hardlink">Hardlink</option></select></div>
                     <div class="inputContainer"><label class="inputLabel" for="TmdbApiKey">TMDB API Key (v3 или Read Access Token)</label><input id="TmdbApiKey" type="password" autocomplete="off" is="emby-input" /><div class="fieldDescription">Ключ используется для получения названий серий, не показывается в журнале.</div></div>
                     <div class="checkboxContainer checkboxContainer-withDescription"><label class="emby-checkbox-label"><input id="UseTmdbEpisodeTitles" type="checkbox" is="emby-checkbox" /><span>Получать названия эпизодов из TMDB</span></label></div>
-                    <div class="inputContainer"><label class="inputLabel" for="MultiEpisodeFileTemplate">Шаблон нескольких серий</label><input id="MultiEpisodeFileTemplate" type="text" is="emby-input" /><div id="MultiEpisodePreview" class="ao-pattern-result"></div></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesLanguage">Язык метаданных</label><input id="SeriesLanguage" type="text" is="emby-input" /></div>
                     <div class="inputContainer"><label class="inputLabel" for="SeriesReplaceColonWith">Заменять двоеточие на</label><input id="SeriesReplaceColonWith" type="text" is="emby-input" /></div>
                     <div class="checkboxContainer checkboxContainer-withDescription"><label class="emby-checkbox-label"><input id="SeriesUseJellyfinMetadataProviders" type="checkbox" is="emby-checkbox" /><span>Использовать провайдеры Jellyfin для названий</span></label></div>
@@ -143,9 +151,13 @@
                             <table class="ao-pattern-table">
                                 <thead><tr><th>Значение</th><th>Переменная</th><th>Пример</th></tr></thead>
                                 <tbody>
-                                    <tr><td>Название фильма</td><td>{title}</td><td>Movie Name</td></tr>
-                                    <tr><td>Год выпуска</td><td>{year}</td><td>2017</td></tr>
-                                    <tr><td>Расширение файла</td><td>{ext}</td><td>.mkv</td></tr>
+                                    <tr><td>Название фильма</td><td><code>%mn</code></td><td>Movie Name</td></tr>
+                                    <tr><td>Слова через точки</td><td><code>%m.n</code></td><td>Movie.Name</td></tr>
+                                    <tr><td>Слова через подчёркивания</td><td><code>%m_n</code></td><td>Movie_Name</td></tr>
+                                    <tr><td>Год выпуска</td><td><code>%my</code></td><td>2017</td></tr>
+                                    <tr><td>Расширение без точки</td><td><code>%ext</code></td><td>mkv</td></tr>
+                                    <tr><td>Исходное имя файла</td><td><code>%fn</code></td><td>filename</td></tr>
+                                    <tr><td>Совместимость</td><td><code>{title}</code></td><td>Movie Name</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -163,9 +175,13 @@
                             <table class="ao-pattern-table">
                                 <thead><tr><th>Значение</th><th>Переменная</th><th>Пример</th></tr></thead>
                                 <tbody>
-                                    <tr><td>Название фильма</td><td>{title}</td><td>Movie Name</td></tr>
-                                    <tr><td>Год выпуска</td><td>{year}</td><td>2017</td></tr>
-                                    <tr><td>Расширение файла</td><td>{ext}</td><td>.mkv</td></tr>
+                                    <tr><td>Название фильма</td><td><code>%mn</code></td><td>Movie Name</td></tr>
+                                    <tr><td>Слова через точки</td><td><code>%m.n</code></td><td>Movie.Name</td></tr>
+                                    <tr><td>Слова через подчёркивания</td><td><code>%m_n</code></td><td>Movie_Name</td></tr>
+                                    <tr><td>Год выпуска</td><td><code>%my</code></td><td>2017</td></tr>
+                                    <tr><td>Расширение без точки</td><td><code>%ext</code></td><td>mkv</td></tr>
+                                    <tr><td>Исходное имя файла</td><td><code>%fn</code></td><td>filename</td></tr>
+                                    <tr><td>Совместимость</td><td><code>{title}</code></td><td>Movie Name</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -239,26 +255,34 @@
     }
 
     function renderMoviePreview(template) {
-        return String(template || '')
-            .replace(/\{title\}/gi, 'Movie Name')
-            .replace(/\{year\}/gi, '2017')
-            .replace(/\{ext\}/gi, '.mkv');
+        const example = {
+            '{title}':'Movie Name', '{year}':'2017', '{ext}':'.mkv',
+            '%mn':'Movie Name', '%m.n':'Movie.Name', '%m_n':'Movie_Name',
+            '%my':'2017', '%ext':'mkv', '%fn':'filename'
+        };
+        return String(template || '').replace(/\{title\}|\{year\}|\{ext\}|%m\.n|%m_n|%mn|%my|%ext|%fn/gi,
+            token => example[token.toLowerCase()] ?? token);
     }
 
-    function renderEpisodePreview(template) {
-        return String(template || '')
-            .replace(/\{series\}/gi, 'Series Name')
-            .replace(/\{season:00\}/gi, '01')
-            .replace(/\{episode:00\}/gi, '04')
-            .replace(/\{season\}/gi, '1')
-            .replace(/\{episode\}/gi, '4')
-            .replace(/\{ext\}/gi, '.mkv');
+    function renderEpisodePreview(template, folder = false) {
+        const example = {
+            '{series}':'Series Name', '{season}':'1', '{season:00}':'01',
+            '{episode}':'4', '{episode:00}':'04', '{episodeTitle}':'Episode Four',
+            '{endingEpisode:00}':'05', '{ext}':'.mkv',
+            '%sn':'Series Name', '%s.n':'Series.Name', '%s_n':'Series_Name',
+            '%sy':'2017', '%s':'1', '%0s':'01', '%e':'4', '%0e':'04',
+            '%ed':'5', '%0ed':'05', '%en':'Episode Four',
+            '%e.n':'Episode.Four', '%e_n':'Episode_Four',
+            '%ext':'mkv', '%fn': folder ? 'Series Name (2017)' : 'filename'
+        };
+        return String(template || '').replace(/\{endingEpisode:00\}|\{episodeTitle\}|\{season:00\}|\{episode:00\}|\{series\}|\{season\}|\{episode\}|\{ext\}|%0ed|%0e|%0s|%s\.n|%s_n|%sn|%sy|%e\.n|%e_n|%en|%ed|%ext|%fn|%s|%e/gi,
+            token => example[token.toLowerCase()] ?? token);
     }
 
     function updatePatternPreviews() {
-        q('SeriesFolderPreview').textContent = 'Результат: ' + renderEpisodePreview(q('SeriesFolderTemplate').value);
-        q('EpisodeFilePreview').textContent = 'Результат: ' + renderEpisodePreview(q('EpisodeFileTemplate').value).replace(/\{episodeTitle\}|%en/g, 'Episode Four').replace(/%0s/g, '01').replace(/%0e/g, '04').replace(/%ext/g, 'mkv');
-        q('MultiEpisodePreview').textContent = 'Результат: ' + renderEpisodePreview(q('MultiEpisodeFileTemplate').value).replace(/\{episodeTitle\}|%en/g, 'Episode Four').replace(/%0ed/g, '05').replace(/%0s/g, '01').replace(/%0e/g, '04').replace(/%ext/g, 'mkv');
+        q('SeriesFolderPreview').textContent = 'Результат: ' + renderEpisodePreview(q('SeriesFolderTemplate').value, true);
+        q('EpisodeFilePreview').textContent = 'Результат: ' + renderEpisodePreview(q('EpisodeFileTemplate').value);
+        q('MultiEpisodePreview').textContent = 'Результат: ' + renderEpisodePreview(q('MultiEpisodeFileTemplate').value);
         q('MovieFolderPreview').textContent = 'Результат: ' + renderMoviePreview(q('MovieFolderTemplate').value);
         q('MovieFilePreview').textContent = 'Результат: ' + renderMoviePreview(q('MovieFileTemplate').value);
     }
