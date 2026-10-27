@@ -28,12 +28,14 @@ public sealed class OrganizeService
     private readonly ILogger _logger;
     private readonly MetadataResolver _metadataResolver;
     private readonly Plugin _plugin;
+    private readonly TmdbEpisodeResolver _tmdb;
 
     public OrganizeService(ILogger logger, IProviderManager providerManager, Plugin plugin)
     {
         _logger = logger;
         _metadataResolver = new MetadataResolver(providerManager, logger);
         _plugin = plugin;
+        _tmdb = new TmdbEpisodeResolver(logger);
     }
 
     public int CountCandidates(PluginConfiguration config)
@@ -132,6 +134,11 @@ public sealed class OrganizeService
                     info = await _metadataResolver.ResolveSeriesAsync(info, config.Language, cancellationToken).ConfigureAwait(false);
                 }
 
+                if (config.UseTmdbEpisodeTitles && !string.IsNullOrWhiteSpace(config.TmdbApiKey))
+                {
+                    info = await _tmdb.ResolveAsync(info, config.TmdbApiKey, config.Language, cancellationToken).ConfigureAwait(false);
+                }
+
                 var ext = Path.GetExtension(source);
                 var seriesFolder = FilenameSanitizer.Sanitize(
                     TemplateRenderer.Episode(config.SeriesFolderTemplate, info, string.Empty, config.ReplaceColonWith),
@@ -140,7 +147,7 @@ public sealed class OrganizeService
                     TemplateRenderer.Episode(config.SeasonFolderTemplate, info, string.Empty, config.ReplaceColonWith),
                     config.ReplaceColonWith);
                 var fileName = FilenameSanitizer.Sanitize(
-                    TemplateRenderer.Episode(config.EpisodeFileTemplate, info, ext, config.ReplaceColonWith),
+                    TemplateRenderer.Episode(info.EndingEpisode.HasValue ? config.MultiEpisodeFileTemplate : config.EpisodeFileTemplate, info, ext, config.ReplaceColonWith),
                     config.ReplaceColonWith);
                 var destination = Path.Combine(config.SeriesDestination, seriesFolder, seasonFolder, fileName);
 
