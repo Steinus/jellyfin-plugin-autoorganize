@@ -261,7 +261,7 @@
             '%my':'2017', '%ext':'mkv', '%fn':'filename'
         };
         return String(template || '').replace(/\{title\}|\{year\}|\{ext\}|%m\.n|%m_n|%mn|%my|%ext|%fn/gi,
-            token => example[token.toLowerCase()] ?? token);
+            token => example[token] ?? example[token.toLowerCase()] ?? token);
     }
 
     function renderEpisodePreview(template, folder = false) {
@@ -276,7 +276,7 @@
             '%ext':'mkv', '%fn': folder ? 'Series Name (2017)' : 'filename'
         };
         return String(template || '').replace(/\{endingEpisode:00\}|\{episodeTitle\}|\{season:00\}|\{episode:00\}|\{series\}|\{season\}|\{episode\}|\{ext\}|%0ed|%0e|%0s|%s\.n|%s_n|%sn|%sy|%e\.n|%e_n|%en|%ed|%ext|%fn|%s|%e/gi,
-            token => example[token.toLowerCase()] ?? token);
+            token => example[token] ?? example[token.toLowerCase()] ?? token);
     }
 
     function updatePatternPreviews() {
