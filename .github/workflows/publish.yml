@@ -29,7 +29,12 @@ jobs:
         id: version
         shell: bash
         run: |
-          VERSION="0.2.4.${{ github.run_number }}"
+          BASE_VERSION=$(sed -n 's/^version: "\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)\.[0-9][0-9]*"/\1/p' build.yaml)
+          if [ -z "$BASE_VERSION" ]; then
+            echo "Invalid version in build.yaml"
+            exit 1
+          fi
+          VERSION="$BASE_VERSION.${{ github.run_number }}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Build plugin
         run: |
