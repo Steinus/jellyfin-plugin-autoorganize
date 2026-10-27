@@ -89,4 +89,6 @@ public sealed record EpisodeInfo(
     int? SeriesYear = null,
     int? EndingEpisode = null,
     string? SourceStem = null,
-    string? SourceDirectory = null);
+    string? SourceDirectory = null,
+    int? TmdbSeriesId = null,
+    string? TmdbLookupMessage = null);
