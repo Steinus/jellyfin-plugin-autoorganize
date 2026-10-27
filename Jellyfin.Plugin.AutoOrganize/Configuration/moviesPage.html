@@ -21,8 +21,18 @@
                 <div class="inputContainer"><label class="inputLabel" for="MoviesSource">Папка наблюдения</label><input id="MoviesSource" type="text" is="emby-input" /><div class="fieldDescription">Например: /volume25/Video2/Torrents/Movies</div></div>
                 <div class="inputContainer"><label class="inputLabel" for="MoviesDestination">Каталог фильмов</label><input id="MoviesDestination" type="text" is="emby-input" /><div class="fieldDescription">Например: /volume25/Video2/Movies</div></div>
                 <div class="inputContainer"><label class="inputLabel" for="MoviesMinimumFileAgeMinutes">Минимальный возраст файла, минут</label><input id="MoviesMinimumFileAgeMinutes" type="number" min="0" is="emby-input" /></div>
-                <div class="inputContainer"><label class="inputLabel" for="MovieFolderTemplate">Шаблон папки фильма</label><input id="MovieFolderTemplate" type="text" is="emby-input" /></div>
-                <div class="inputContainer"><label class="inputLabel" for="MovieFileTemplate">Шаблон имени файла</label><input id="MovieFileTemplate" type="text" is="emby-input" /></div>
+                <details class="ao-pattern" style="border-top:1px solid #444;margin:1.2em 0"><summary style="cursor:pointer;padding:1em 0;font-weight:600;list-style:revert">Movie folder pattern</summary><div style="padding:1em"><div class="inputContainer"><label class="inputLabel" for="MovieFolderTemplate">Movie folder pattern:</label><input id="MovieFolderTemplate" type="text" is="emby-input" /><div class="fieldDescription">Результат: <span id="MovieFolderTemplatePreview"></span></div></div><h4>Поддерживаемые шаблоны</h4><div style="overflow-x:auto"><table class="tbl" style="width:100%;text-align:left"><thead><tr><th>Описание</th><th>Шаблон</th><th>Результат</th></tr></thead><tbody><tr><td>Название фильма</td><td><code>%mn</code></td><td>Movie name</td></tr>
+<tr><td>Название через точки</td><td><code>%m.n</code></td><td>Movie.name</td></tr>
+<tr><td>Название через подчёркивания</td><td><code>%m_n</code></td><td>Movie_name</td></tr>
+<tr><td>Год производства</td><td><code>%my</code></td><td>2017</td></tr>
+<tr><td>Расширение</td><td><code>%ext</code></td><td>mkv</td></tr>
+<tr><td>Исходное имя файла</td><td><code>%fn</code></td><td>filename</td></tr></tbody></table></div></div></details>
+                <details class="ao-pattern" style="border-top:1px solid #444;margin:1.2em 0"><summary style="cursor:pointer;padding:1em 0;font-weight:600;list-style:revert">Movie file pattern</summary><div style="padding:1em"><div class="inputContainer"><label class="inputLabel" for="MovieFileTemplate">Movie pattern:</label><input id="MovieFileTemplate" type="text" is="emby-input" /><div class="fieldDescription">Результат: <span id="MovieFileTemplatePreview"></span></div></div><h4>Поддерживаемые шаблоны</h4><div style="overflow-x:auto"><table class="tbl" style="width:100%;text-align:left"><thead><tr><th>Описание</th><th>Шаблон</th><th>Результат</th></tr></thead><tbody><tr><td>Название фильма</td><td><code>%mn</code></td><td>Movie name</td></tr>
+<tr><td>Название через точки</td><td><code>%m.n</code></td><td>Movie.name</td></tr>
+<tr><td>Название через подчёркивания</td><td><code>%m_n</code></td><td>Movie_name</td></tr>
+<tr><td>Год производства</td><td><code>%my</code></td><td>2017</td></tr>
+<tr><td>Расширение</td><td><code>%ext</code></td><td>mkv</td></tr>
+<tr><td>Исходное имя файла</td><td><code>%fn</code></td><td>filename</td></tr></tbody></table></div></div></details>
 
                 <div class="selectContainer"><label class="selectLabel" for="MoviesOperation">Метод переноса</label><select id="MoviesOperation" is="emby-select"><option value="Move">Переместить</option><option value="Copy">Копировать</option><option value="Hardlink">Hardlink</option></select></div>
 
@@ -52,6 +62,19 @@
         });
     });
 
+
+    function preview(id) {
+        const el = document.getElementById(id), out = document.getElementById(id + 'Preview');
+        if (!el || !out) return;
+        const movie = id.startsWith('Movie'), ext = 'mkv';
+        const values = movie
+            ? {'%mn':'Movie Name','%m.n':'Movie.Name','%m_n':'Movie_Name','%my':'2017','%ext':ext,'%fn':'filename'}
+            : {'%sn':'Series Name','%s.n':'Series.Name','%s_n':'Series_Name','%sy':'2017','%s':'1','%0s':'01','%e':'4','%0e':'04','%ed':'5','%0ed':'05','%en':'Episode Four','%e.n':'Episode.Four','%e_n':'Episode_Four','%ext':ext,'%fn':'filename'};
+        out.textContent = (el.value || '').replace(/%0ed|%0e|%0s|%m\.n|%m_n|%mn|%my|%s\.n|%s_n|%sn|%sy|%e\.n|%e_n|%en|%ed|%ext|%fn|%s|%e/g, token => values[token] ?? token);
+    }
+    const previewIds = ["MovieFolderTemplate","MovieFileTemplate"];
+    document.querySelectorAll('#AutoOrganizeMoviesPage input').forEach(el => { if (previewIds.includes(el.id)) el.addEventListener('input', () => preview(el.id)); });
+    document.querySelector('#AutoOrganizeMoviesPage').addEventListener('pageshow', () => previewIds.forEach(preview));
     document.querySelector('#MoviesForm').addEventListener('submit', function (e) {
         e.preventDefault();
         Dashboard.showLoadingMsg();

@@ -21,9 +21,26 @@
                 <div class="inputContainer"><label class="inputLabel" for="SeriesSource">Папка наблюдения</label><input id="SeriesSource" type="text" is="emby-input" /><div class="fieldDescription">Например: /volume25/Video2/Torrents/TV</div></div>
                 <div class="inputContainer"><label class="inputLabel" for="SeriesDestination">Каталог сериалов</label><input id="SeriesDestination" type="text" is="emby-input" /><div class="fieldDescription">Например: /volume25/Video2/TV</div></div>
                 <div class="inputContainer"><label class="inputLabel" for="SeriesMinimumFileAgeMinutes">Минимальный возраст файла, минут</label><input id="SeriesMinimumFileAgeMinutes" type="number" min="0" is="emby-input" /></div>
-                <div class="inputContainer"><label class="inputLabel" for="SeriesFolderTemplate">Шаблон папки сериала</label><input id="SeriesFolderTemplate" type="text" is="emby-input" /></div>
+                <details class="ao-pattern" style="border-top:1px solid #444;margin:1.2em 0"><summary style="cursor:pointer;padding:1em 0;font-weight:600;list-style:revert">Series directory pattern</summary><div style="padding:1em"><div class="inputContainer"><label class="inputLabel" for="SeriesFolderTemplate">Series pattern:</label><input id="SeriesFolderTemplate" type="text" is="emby-input" /><div class="fieldDescription">Результат: <span id="SeriesFolderTemplatePreview"></span></div></div><h4>Поддерживаемые шаблоны</h4><div style="overflow-x:auto"><table class="tbl" style="width:100%;text-align:left"><thead><tr><th>Описание</th><th>Шаблон</th><th>Результат</th></tr></thead><tbody><tr><td>Название сериала</td><td><code>%sn</code></td><td>Series name</td></tr>
+<tr><td>Название через точки</td><td><code>%s.n</code></td><td>Series.name</td></tr>
+<tr><td>Название через подчёркивания</td><td><code>%s_n</code></td><td>Series_name</td></tr>
+<tr><td>Год сериала</td><td><code>%sy</code></td><td>2017</td></tr>
+<tr><td>Исходная папка</td><td><code>%fn</code></td><td>Series name (2017)</td></tr></tbody></table></div></div></details>
                 <div class="inputContainer"><label class="inputLabel" for="SeasonFolderTemplate">Шаблон папки сезона</label><input id="SeasonFolderTemplate" type="text" is="emby-input" /></div>
-                <div class="inputContainer"><label class="inputLabel" for="EpisodeFileTemplate">Шаблон имени серии</label><input id="EpisodeFileTemplate" type="text" is="emby-input" /></div>
+                <details class="ao-pattern" style="border-top:1px solid #444;margin:1.2em 0"><summary style="cursor:pointer;padding:1em 0;font-weight:600;list-style:revert">Episode file pattern</summary><div style="padding:1em"><div class="inputContainer"><label class="inputLabel" for="EpisodeFileTemplate">Episode pattern:</label><input id="EpisodeFileTemplate" type="text" is="emby-input" /><div class="fieldDescription">Результат: <span id="EpisodeFileTemplatePreview"></span></div></div><div class="inputContainer"><label class="inputLabel" for="MultiEpisodeFileTemplate">Multi-episode pattern:</label><input id="MultiEpisodeFileTemplate" type="text" is="emby-input" /><div class="fieldDescription">Результат: <span id="MultiEpisodeFileTemplatePreview"></span></div></div><h4>Поддерживаемые шаблоны</h4><div style="overflow-x:auto"><table class="tbl" style="width:100%;text-align:left"><thead><tr><th>Описание</th><th>Шаблон</th><th>Результат</th></tr></thead><tbody><tr><td>Название сериала</td><td><code>%sn</code></td><td>Series name</td></tr>
+<tr><td>Название через точки</td><td><code>%s.n</code></td><td>Series.name</td></tr>
+<tr><td>Название через подчёркивания</td><td><code>%s_n</code></td><td>Series_name</td></tr>
+<tr><td>Сезон</td><td><code>%s</code></td><td>1</td></tr>
+<tr><td>Сезон с нулём</td><td><code>%0s</code></td><td>01</td></tr>
+<tr><td>Серия</td><td><code>%e</code></td><td>4</td></tr>
+<tr><td>Серия с нулём</td><td><code>%0e</code></td><td>04</td></tr>
+<tr><td>Последняя серия</td><td><code>%ed</code></td><td>5</td></tr>
+<tr><td>Последняя серия с нулём</td><td><code>%0ed</code></td><td>05</td></tr>
+<tr><td>Название серии</td><td><code>%en</code></td><td>Episode name</td></tr>
+<tr><td>Название серии через точки</td><td><code>%e.n</code></td><td>Episode.name</td></tr>
+<tr><td>Название серии через подчёркивания</td><td><code>%e_n</code></td><td>Episode_name</td></tr>
+<tr><td>Расширение</td><td><code>%ext</code></td><td>mkv</td></tr>
+<tr><td>Исходное имя файла</td><td><code>%fn</code></td><td>filename</td></tr></tbody></table></div></div></details>
 
                 <div class="selectContainer"><label class="selectLabel" for="SeriesOperation">Метод переноса</label><select id="SeriesOperation" is="emby-select"><option value="Move">Переместить</option><option value="Copy">Копировать</option><option value="Hardlink">Hardlink</option></select></div>
 
@@ -41,7 +58,7 @@
 <script type="text/javascript">
 (function () {
     const pluginId = 'b0515a71-eba2-4cca-9670-6aedba961caa';
-    const ids = ['SeriesSource','SeriesDestination','SeriesMinimumFileAgeMinutes','SeriesFolderTemplate','SeasonFolderTemplate','EpisodeFileTemplate','SeriesOperation','Language','ReplaceColonWith'];
+    const ids = ['SeriesSource','SeriesDestination','SeriesMinimumFileAgeMinutes','SeriesFolderTemplate','SeasonFolderTemplate','EpisodeFileTemplate','MultiEpisodeFileTemplate','SeriesOperation','Language','ReplaceColonWith'];
     const checks = ['SeriesEnabled','SeriesDryRun','UseJellyfinMetadataProviders','SeriesMoveAssociatedFiles','SeriesDeleteEmptyFolders'];
 
     document.querySelector('#AutoOrganizeSeriesPage').addEventListener('pageshow', function () {
@@ -53,6 +70,19 @@
         });
     });
 
+
+    function preview(id) {
+        const el = document.getElementById(id), out = document.getElementById(id + 'Preview');
+        if (!el || !out) return;
+        const movie = id.startsWith('Movie'), ext = 'mkv';
+        const values = movie
+            ? {'%mn':'Movie Name','%m.n':'Movie.Name','%m_n':'Movie_Name','%my':'2017','%ext':ext,'%fn':'filename'}
+            : {'%sn':'Series Name','%s.n':'Series.Name','%s_n':'Series_Name','%sy':'2017','%s':'1','%0s':'01','%e':'4','%0e':'04','%ed':'5','%0ed':'05','%en':'Episode Four','%e.n':'Episode.Four','%e_n':'Episode_Four','%ext':ext,'%fn':'filename'};
+        out.textContent = (el.value || '').replace(/%0ed|%0e|%0s|%m\.n|%m_n|%mn|%my|%s\.n|%s_n|%sn|%sy|%e\.n|%e_n|%en|%ed|%ext|%fn|%s|%e/g, token => values[token] ?? token);
+    }
+    const previewIds = ["SeriesFolderTemplate","EpisodeFileTemplate","MultiEpisodeFileTemplate"];
+    document.querySelectorAll('#AutoOrganizeSeriesPage input').forEach(el => { if (previewIds.includes(el.id)) el.addEventListener('input', () => preview(el.id)); });
+    document.querySelector('#AutoOrganizeSeriesPage').addEventListener('pageshow', () => previewIds.forEach(preview));
     document.querySelector('#SeriesForm').addEventListener('submit', function (e) {
         e.preventDefault();
         Dashboard.showLoadingMsg();

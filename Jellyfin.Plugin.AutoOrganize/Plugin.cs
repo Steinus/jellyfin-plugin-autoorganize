@@ -77,6 +77,18 @@ public sealed class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
         [
             new PluginPageInfo
             {
+                Name = "AutoOrganizeMovies",
+                DisplayName = "Фильмы",
+                EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.moviesPage.html", GetType().Namespace)
+            },
+            new PluginPageInfo
+            {
+                Name = "AutoOrganizeSeries",
+                DisplayName = "Сериалы",
+                EmbeddedResourcePath = string.Format(CultureInfo.InvariantCulture, "{0}.Configuration.seriesPage.html", GetType().Namespace)
+            },
+            new PluginPageInfo
+            {
                 Name = "AutoOrganize",
                 DisplayName = "Auto Organize",
                 EmbeddedResourcePath = string.Format(
