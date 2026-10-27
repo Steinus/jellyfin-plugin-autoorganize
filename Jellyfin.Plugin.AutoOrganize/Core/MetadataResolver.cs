@@ -101,7 +101,20 @@ public sealed class MetadataResolver
                 best.Name,
                 best.SearchProviderName);
 
-            return parsed with { Series = best.Name };
+            int? tmdbSeriesId = parsed.TmdbSeriesId;
+            if (best.ProviderIds is not null &&
+                best.ProviderIds.TryGetValue("Tmdb", out var rawId) &&
+                int.TryParse(rawId, NumberStyles.None, CultureInfo.InvariantCulture, out var parsedId))
+            {
+                tmdbSeriesId = parsedId;
+            }
+
+            return parsed with
+            {
+                Series = best.Name,
+                SeriesYear = best.ProductionYear ?? parsed.SeriesYear,
+                TmdbSeriesId = tmdbSeriesId
+            };
         }
         catch (Exception ex)
         {
