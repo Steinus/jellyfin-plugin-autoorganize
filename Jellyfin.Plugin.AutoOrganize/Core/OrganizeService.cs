@@ -28,12 +28,14 @@ public sealed class OrganizeService
     private readonly ILogger _logger;
     private readonly MetadataResolver _metadataResolver;
     private readonly Plugin _plugin;
+    private readonly TmdbEpisodeResolver _tmdb;
 
     public OrganizeService(ILogger logger, IProviderManager providerManager, Plugin plugin)
     {
         _logger = logger;
         _metadataResolver = new MetadataResolver(providerManager, logger);
         _plugin = plugin;
+        _tmdb = new TmdbEpisodeResolver(logger);
     }
 
     public int CountCandidates(PluginConfiguration config)
@@ -132,15 +134,41 @@ public sealed class OrganizeService
                     info = await _metadataResolver.ResolveSeriesAsync(info, config.Language, cancellationToken).ConfigureAwait(false);
                 }
 
+                if (config.UseTmdbEpisodeTitles)
+                {
+                    if (string.IsNullOrWhiteSpace(config.TmdbApiKey))
+                    {
+                        _plugin.AddActivity("TV", "Info", source, null, "TMDB: API-ключ не задан, название эпизода будет пропущено.");
+                    }
+                    else
+                    {
+                        info = await _tmdb.ResolveAsync(info, config.TmdbApiKey, config.Language, cancellationToken).ConfigureAwait(false);
+                        if (string.IsNullOrWhiteSpace(info.EpisodeTitle))
+                        {
+                            _plugin.AddActivity("TV", "Info", source, null,
+                                info.TmdbLookupMessage ?? "TMDB: название эпизода не найдено. Проверьте год, номер серии и доступность данных.");
+                        }
+                        else
+                        {
+                            _plugin.AddActivity("TV", "Info", source, null,
+                                "TMDB: найдено название серии: " + info.EpisodeTitle);
+                        }
+                    }
+                }
+
                 var ext = Path.GetExtension(source);
                 var seriesFolder = FilenameSanitizer.Sanitize(
-                    TemplateRenderer.Episode(config.SeriesFolderTemplate, info, string.Empty, config.ReplaceColonWith),
+                    TemplateRenderer.Episode(config.SeriesFolderTemplate, info, string.Empty, config.ReplaceColonWith, sourceDirectoryPattern: true),
                     config.ReplaceColonWith);
+                // Season zero (specials) has its own explicit directory label.
+                var seasonPattern = info.Season == 0
+                    ? (string.IsNullOrWhiteSpace(config.SeasonZeroFolderName) ? "Season 00" : config.SeasonZeroFolderName)
+                    : (string.IsNullOrWhiteSpace(config.SeasonFolderTemplate) ? "Season %s" : config.SeasonFolderTemplate);
                 var seasonFolder = FilenameSanitizer.Sanitize(
-                    TemplateRenderer.Episode(config.SeasonFolderTemplate, info, string.Empty, config.ReplaceColonWith),
+                    TemplateRenderer.Episode(seasonPattern, info, string.Empty, config.ReplaceColonWith),
                     config.ReplaceColonWith);
                 var fileName = FilenameSanitizer.Sanitize(
-                    TemplateRenderer.Episode(config.EpisodeFileTemplate, info, ext, config.ReplaceColonWith),
+                    TemplateRenderer.Episode(info.EndingEpisode.HasValue ? config.MultiEpisodeFileTemplate : config.EpisodeFileTemplate, info, ext, config.ReplaceColonWith),
                     config.ReplaceColonWith);
                 var destination = Path.Combine(config.SeriesDestination, seriesFolder, seasonFolder, fileName);
 

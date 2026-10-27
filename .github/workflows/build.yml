@@ -17,6 +17,10 @@ jobs:
         run: dotnet restore Jellyfin.Plugin.AutoOrganize.slnx
       - name: Build
         run: dotnet build Jellyfin.Plugin.AutoOrganize.slnx -c Release --no-restore
+      - name: Regression test naming patterns
+        run: dotnet run --project tools/PatternSmokeTest/PatternSmokeTest.csproj -c Release
+      - name: Verify settings page scripts and controls
+        run: node tools/check-settings-page.cjs
       - name: Package DLL
         uses: actions/upload-artifact@v4
         with:

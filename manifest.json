@@ -1,0 +1,11 @@
+[
+  {
+    "guid": "b0515a71-eba2-4cca-9670-6aedba961caa",
+    "name": "Auto Organize",
+    "description": "Автоматическая организация фильмов и сериалов в Jellyfin.",
+    "overview": "Auto Organize: импорт, переименование и названия эпизодов TMDB.",
+    "owner": "Steinus",
+    "category": "General",
+    "versions": []
+  }
+]
