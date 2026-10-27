@@ -257,8 +257,8 @@
 
     function updatePatternPreviews() {
         q('SeriesFolderPreview').textContent = 'Результат: ' + renderEpisodePreview(q('SeriesFolderTemplate').value);
-        q('EpisodeFilePreview').textContent = 'Результат: ' + renderEpisodePreview(q('EpisodeFileTemplate').value).replace(/\\{episodeTitle\\}|%en/g, 'Episode Four').replace(/%0s/g, '01').replace(/%0e/g, '04').replace(/%ext/g, 'mkv');
-        q('MultiEpisodePreview').textContent = 'Результат: ' + renderEpisodePreview(q('MultiEpisodeFileTemplate').value).replace(/\\{episodeTitle\\}|%en/g, 'Episode Four').replace(/%0ed/g, '05').replace(/%0s/g, '01').replace(/%0e/g, '04').replace(/%ext/g, 'mkv');
+        q('EpisodeFilePreview').textContent = 'Результат: ' + renderEpisodePreview(q('EpisodeFileTemplate').value).replace(/\{episodeTitle\}|%en/g, 'Episode Four').replace(/%0s/g, '01').replace(/%0e/g, '04').replace(/%ext/g, 'mkv');
+        q('MultiEpisodePreview').textContent = 'Результат: ' + renderEpisodePreview(q('MultiEpisodeFileTemplate').value).replace(/\{episodeTitle\}|%en/g, 'Episode Four').replace(/%0ed/g, '05').replace(/%0s/g, '01').replace(/%0e/g, '04').replace(/%ext/g, 'mkv');
         q('MovieFolderPreview').textContent = 'Результат: ' + renderMoviePreview(q('MovieFolderTemplate').value);
         q('MovieFilePreview').textContent = 'Результат: ' + renderMoviePreview(q('MovieFileTemplate').value);
     }
