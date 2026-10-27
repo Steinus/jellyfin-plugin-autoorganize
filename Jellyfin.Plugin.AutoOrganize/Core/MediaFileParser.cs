@@ -18,10 +18,10 @@ public static partial class MediaFileParser
         var match = MovieYearRegex().Match(name);
         if (match.Success)
         {
-            return new MovieInfo(CleanTitle(match.Groups["title"].Value), int.Parse(match.Groups["year"].Value));
+            return new MovieInfo(CleanTitle(match.Groups["title"].Value), int.Parse(match.Groups["year"].Value), name);
         }
 
-        return new MovieInfo(CleanTitle(name), null);
+        return new MovieInfo(CleanTitle(name), null, name);
     }
 
     /// <summary>
@@ -36,10 +36,26 @@ public static partial class MediaFileParser
             return null;
         }
 
+        var series = CleanTitle(match.Groups["title"].Value);
+        int? year = null;
+        var yearMatch = Regex.Match(series, @"(?:19|20)\d{2}$");
+        if (yearMatch.Success && int.TryParse(yearMatch.Value, out var parsedYear))
+        {
+            year = parsedYear;
+            series = series[..yearMatch.Index].Trim(' ', '-', '.', '_', '(', ')');
+        }
+
+        int? endingEpisode = match.Groups["ending"].Success
+            ? int.Parse(match.Groups["ending"].Value)
+            : null;
         return new EpisodeInfo(
-            CleanTitle(match.Groups["title"].Value),
+            series,
             int.Parse(match.Groups["season"].Value),
-            int.Parse(match.Groups["episode"].Value));
+            int.Parse(match.Groups["episode"].Value),
+            SeriesYear: year,
+            EndingEpisode: endingEpisode,
+            SourceStem: name,
+            SourceDirectory: Path.GetFileName(Path.GetDirectoryName(filePath)));
     }
 
     private static string CleanTitle(string value)
@@ -51,7 +67,7 @@ public static partial class MediaFileParser
     [GeneratedRegex(@"^(?<title>.+?)[\s._\-(\[]+(?<year>(?:19|20)\d{2})(?:[\s._\-)\]].*)?$", RegexOptions.IgnoreCase)]
     private static partial Regex MovieYearRegex();
 
-    [GeneratedRegex(@"^(?<title>.+?)[\s._-]+S(?<season>\d{1,2})E(?<episode>\d{1,3})(?:\b|[\s._-])", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"^(?<title>.+?)[\s._-]+S(?<season>\d{1,2})E(?<episode>\d{1,3})(?:[\s._-]*(?:E|x)(?<ending>\d{1,3}))?(?:\b|[\s._-])", RegexOptions.IgnoreCase)]
     private static partial Regex EpisodeRegex();
 
     [GeneratedRegex(@"[._]+")]
@@ -62,7 +78,15 @@ public static partial class MediaFileParser
 }
 
 /// <summary>Parsed movie information.</summary>
-public sealed record MovieInfo(string Title, int? Year);
+public sealed record MovieInfo(string Title, int? Year, string? SourceStem = null);
 
 /// <summary>Parsed episode information.</summary>
-public sealed record EpisodeInfo(string Series, int Season, int Episode);
+public sealed record EpisodeInfo(
+    string Series,
+    int Season,
+    int Episode,
+    string? EpisodeTitle = null,
+    int? SeriesYear = null,
+    int? EndingEpisode = null,
+    string? SourceStem = null,
+    string? SourceDirectory = null);
